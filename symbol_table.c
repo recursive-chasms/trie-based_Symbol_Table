@@ -116,7 +116,7 @@ int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_
 				}
 				if(state_array[index_B] == '1' || first_run == '1')
 				{
-					first_run = '0';
+					//first_run = '0';
 					local_state_array[index_B] = '1';	
 					if(first_run == '1')
 						match_count++;	
@@ -126,6 +126,7 @@ int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_
 			}
 		}
 	}
+	first_run = '0';
 	
 	if(local_count != 0)
 	{
