@@ -70,9 +70,13 @@ void SymTab_Init(void)
 	symtab[14].token = USE;
 	symtab[15].token = QUIT;
 	
-	//TODO: initialize hash array values to F. 
+	for(index = 0; index < MAX_STRING; index++)
+	{
+		for(B_index = 0; B_index < ALPHABET; ALPHABET++)
+			hash_array[index][B_index] = 0;
+	}
 	
-	for(index; index < SYMTAB_SIZE; index++)
+	for(index = 0; index < SYMTAB_SIZE; index++)
 	{
 		len = strlen(symtab[index].str);
 		for(B_index = 0; B_index < len; B_index++)
@@ -80,9 +84,7 @@ void SymTab_Init(void)
 			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 1;
 		}
 	
-	}
-	
-	
+	}	
 	
 	return;
 }
