@@ -112,13 +112,13 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 				if(is_first_match)
 				{
 					is_first_match = 0;
-					match_count = 1;
+					match_count = 0;
 				}
 				if(state_array[index_B] || is_first_run)
 				{
 					local_state_array[index_B] = 1;	
-					if(is_first_run)
-						match_count++;	
+
+					match_count++;	
 					local_count++;	
 				}
 			}
