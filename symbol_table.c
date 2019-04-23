@@ -28,7 +28,7 @@ typedef struct tab tab;
 tab symtab[SYMTAB_SIZE];
 
 
-char hash_array[MAX_STRING][ALPHABET];
+int hash_array[MAX_STRING][ALPHABET];
 
 void SymTab_Init(void)
 {
@@ -77,7 +77,7 @@ void SymTab_Init(void)
 		len = strlen(symtab[index].str);
 		for(B_index = 0; B_index < len; B_index++)
 		{
-			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = '1';
+			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 1;
 		}
 	
 	}
@@ -87,7 +87,7 @@ void SymTab_Init(void)
 	return;
 }
 
-int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_count, int index, char first_run)
+int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_count, int index, int is_first_run)
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
@@ -97,7 +97,7 @@ int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_
 	int local_state_array[SYMTAB_SIZE];
 	int index_B = 0;
 	int local_count = 0;
-	char first_match_bool = '1';
+	int is_first_match = 1;
 	
 	for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
 		local_state_array[index_B] = 0;
@@ -109,24 +109,22 @@ int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_
 		{
 			if(string[index] == symtab[index_B].str[index])
 			{	
-				if(first_match_bool == '1')
+				if(is_first_match)
 				{
-					first_match_bool = '0';
+					is_first_match = 0;
 					match_count = 1;
 				}
-				if(state_array[index_B] == '1' || first_run == '1')
+				if(state_array[index_B] || is_first_run)
 				{
-					//first_run = '0';
-					local_state_array[index_B] = '1';	
-					if(first_run == '1')
+					local_state_array[index_B] = 1;	
+					if(is_first_run)
 						match_count++;	
 					local_count++;	
 				}
-				//TODO: Reduce state array size to include only those strings that actually match. 
 			}
 		}
 	}
-	first_run = '0';
+	is_first_run = 0;
 	
 	if(local_count != 0)
 	{
@@ -137,7 +135,7 @@ int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_
 		/*Check next letter in the string*/
 		index++;
 		if(string[index] != '\0' && string[index] != '\n' && stack_count < SAFE_STACK)
-			match_count = Sym_Compare(string, state_array, match_count, index, first_run);
+			match_count = Sym_Compare(string, state_array, match_count, index, is_first_run);
 	}
 		
 	return match_count;
@@ -145,7 +143,7 @@ int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_
 
 int String_Compare(char string[STR_SIZE])
 {		
-	char state_array[SYMTAB_SIZE];
+	int state_array[SYMTAB_SIZE];
 	
 	int index;
 	int match_count;
@@ -153,7 +151,7 @@ int String_Compare(char string[STR_SIZE])
 	for(index = 0; index < SYMTAB_SIZE; index++)
 		state_array[index] = 0;	
 	
-	match_count = Sym_Compare(string, state_array, 0, 0, '1');
+	match_count = Sym_Compare(string, state_array, 0, 0, 1);
 	
 	if(match_count == 0)
 	{	
@@ -186,7 +184,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("ulit");
+	String_Compare("xbox");
 	
 return 0;
 }
