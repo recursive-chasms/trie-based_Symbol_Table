@@ -27,7 +27,6 @@ typedef struct tab tab;
 
 tab symtab[SYMTAB_SIZE];
 
-
 int hash_array[MAX_STRING][ALPHABET];
 
 void SymTab_Init(void)
@@ -82,8 +81,7 @@ void SymTab_Init(void)
 		for(B_index = 0; B_index < len; B_index++)
 		{
 			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 1;
-		}
-	
+		}	
 	}	
 	
 	return;
@@ -100,11 +98,41 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	int index_B = 0;
 	int local_count = 0;
 	int is_first_match = 1;
+	//int len = strlen(string);
 	
 	for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
 		local_state_array[index_B] = 0;
 	
-	/*Check first layer of string array.*/	
+	index = 0;
+	while(string[index] != '\0' && string[index] != '\n')
+	{
+		if(string[index] == hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET]
+		{	
+			if(is_first_match)
+			{
+				is_first_match = 0;
+				match_count = 0;
+			}
+			if(state_array[index_B] || is_first_run)
+			{
+				local_state_array[index_B] = 1;	
+
+				match_count++;	
+				local_count++;	
+			}
+		}
+	
+		if(local_count == 0)
+			return match_count;
+	
+		for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
+			state_array[index_B] = local_state_array[index_B];
+	
+		index++;
+	}
+	is_first_run = 0;
+	
+	/*Check first layer of string array.
 	for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
 	{
 		if(symtab[index_B].str[index] != '\0' && symtab[index_B].str[index] != '\n')
@@ -126,19 +154,23 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 			}
 		}
 	}
-	is_first_run = 0;
 	
+	is_first_run = 0;
+	*/
+	
+	/*
 	if(local_count != 0)
 	{
-		/*Over-write the previous state array. Otherwise, leave the state array in the last matching state.*/
+		/*Over-write the previous state array. Otherwise, leave the state array in the last matching state.
 		for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
 			state_array[index_B] = local_state_array[index_B];
 		
-		/*Check next letter in the string*/
+		/*Check next letter in the string
 		index++;
 		if(string[index] != '\0' && string[index] != '\n' && stack_count < SAFE_STACK)
 			match_count = Sym_Compare(string, state_array, match_count, index, is_first_run);
 	}
+	*/
 		
 	return match_count;
 } 
