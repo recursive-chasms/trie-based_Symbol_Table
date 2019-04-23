@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "include/userinput.h"
-#include "include/symbol_table.h"
+#include "userinput.h"
+//#include "include/symbol_table.h"
 
 #define SAFE_STACK 20000
 #define ALPHABET 26
@@ -11,11 +11,13 @@
 #define SYMTAB_SIZE 16
 #define LOWERCASE_OFFSET 97
 
+//#define STR_SIZE 512
+
 int stack_count = 0;
 
 /*Quick and dirty symbol table for comparing ambiguous keywords. No time for a hash table. :/   ~Peter, April 20th*/
 
-/*
+
 struct tab
 {
 	char str[STR_SIZE];
@@ -24,7 +26,7 @@ struct tab
 typedef struct tab tab;
 
 tab symtab[SYMTAB_SIZE];
-*/
+
 
 char hash_array[MAX_STRING][ALPHABET];
 
@@ -75,7 +77,7 @@ void SymTab_Init(void)
 		len = strlen(symtab[index].str);
 		for(B_index = 0; B_index < len; B_index++)
 		{
-			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 'T';
+			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = '1';
 		}
 	
 	}
@@ -85,7 +87,7 @@ void SymTab_Init(void)
 	return;
 }
 
-int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_count, int index)
+int Sym_Compare(char string[STR_SIZE], char state_array[SYMTAB_SIZE], int match_count, int index, char first_run)
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
@@ -95,7 +97,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	int local_state_array[SYMTAB_SIZE];
 	int index_B = 0;
 	int local_count = 0;
-	char first_match_bool = 'T';
+	char first_match_bool = '1';
 	
 	for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
 		local_state_array[index_B] = 0;
@@ -107,17 +109,20 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 		{
 			if(string[index] == symtab[index_B].str[index])
 			{	
-				if(first_match_bool == 'T')
+				if(first_match_bool == '1')
 				{
-					first_match_bool = 'F';
-					match_count = 0;
-				}				
-				local_state_array[index_B] = string[index];	
-				
+					first_match_bool = '0';
+					match_count = 1;
+				}
+				if(state_array[index_B] == '1' || first_run == '1')
+				{
+					first_run = '0';
+					local_state_array[index_B] = '1';	
+					if(first_run == '1')
+						match_count++;	
+					local_count++;	
+				}
 				//TODO: Reduce state array size to include only those strings that actually match. 
-			
-				local_count++;
-				match_count++;		
 			}
 		}
 	}
@@ -131,7 +136,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 		/*Check next letter in the string*/
 		index++;
 		if(string[index] != '\0' && string[index] != '\n' && stack_count < SAFE_STACK)
-			match_count = Sym_Compare(string, state_array, match_count, index);
+			match_count = Sym_Compare(string, state_array, match_count, index, first_run);
 	}
 		
 	return match_count;
@@ -139,7 +144,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 
 int String_Compare(char string[STR_SIZE])
 {		
-	int state_array[SYMTAB_SIZE];
+	char state_array[SYMTAB_SIZE];
 	
 	int index;
 	int match_count;
@@ -147,16 +152,16 @@ int String_Compare(char string[STR_SIZE])
 	for(index = 0; index < SYMTAB_SIZE; index++)
 		state_array[index] = 0;	
 	
-	match_count = Sym_Compare(string, state_array, 0, 0);
+	match_count = Sym_Compare(string, state_array, 0, 0, '1');
 	
 	if(match_count == 0)
 	{	
-		//printf("HELP %i\n", HELP);
+		printf("HELP %i\n", HELP);
 		return HELP;
 	}
 	else if(match_count == 1)
 	{
-		//printf("One match.\n");
+		printf("One match.\n");
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{
 			if(state_array[index] != 0)
@@ -180,7 +185,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("ddrafef");
+	String_Compare("ulit");
 	
 return 0;
 }
