@@ -25,9 +25,16 @@ struct tab
 };
 typedef struct tab tab;
 
+struct arr
+{
+	int val;
+	int count;
+};
+typedef struct arr arr;
+
 tab symtab[SYMTAB_SIZE];
 
-int hash_array[MAX_STRING][ALPHABET];
+arr hash_array[MAX_STRING][ALPHABET];
 
 void SymTab_Init(void)
 {
@@ -72,7 +79,10 @@ void SymTab_Init(void)
 	for(index = 0; index < MAX_STRING; index++)
 	{
 		for(B_index = 0; B_index < ALPHABET; B_index++)
-			hash_array[index][B_index] = 0;
+		{
+			hash_array[index][B_index].val = 0;
+			hash_array[index][B_index].count = 0;
+		}
 	}
 	
 	for(index = 0; index < SYMTAB_SIZE; index++)
@@ -80,7 +90,8 @@ void SymTab_Init(void)
 		len = strlen(symtab[index].str);
 		for(B_index = 0; B_index < len; B_index++)
 		{
-			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 1;
+			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].val = 1;
+			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].count++;
 		}	
 	}	
 	
@@ -88,7 +99,7 @@ void SymTab_Init(void)
 	for(index = 0; index < MAX_STRING; index++)
 	{
 		for(B_index = 0; B_index < ALPHABET; B_index++)
-			printf("%i ", hash_array[index][B_index]);
+			printf("%i ", hash_array[index][B_index].count);
 		putchar('\n');
 	}
 	
@@ -115,12 +126,12 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	while(string[index] != '\0' && string[index] != '\n')
 	{
 		//is_first_match = 1;
-		if(hash_array[index][(int)string[index] - LOWERCASE_OFFSET])
+		if(hash_array[index][(int)string[index] - LOWERCASE_OFFSET].val)
 		{	
 			if(is_first_run)
 			{
 				state_array[index] = 1;	
-				match_count++;	
+				match_count = hash_array[index][(int)string[index] - LOWERCASE_OFFSET].count;
 				local_count++;
 			}
 			
@@ -218,6 +229,7 @@ int String_Compare(char string[STR_SIZE])
 		printf("Ambiguous input. Possible options:\n");
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{	
+			printf("match_count: %i\n", match_count);
 			if(state_array[index] != 0)
 				printf(" - %s\n", symtab[index].str);
 		}	
