@@ -71,7 +71,7 @@ void SymTab_Init(void)
 	
 	for(index = 0; index < MAX_STRING; index++)
 	{
-		for(B_index = 0; B_index < ALPHABET; ALPHABET++)
+		for(B_index = 0; B_index < ALPHABET; B_index++)
 			hash_array[index][B_index] = 0;
 	}
 	
@@ -84,6 +84,14 @@ void SymTab_Init(void)
 		}	
 	}	
 	
+	puts("HASH ARRAY:\n");
+	for(index = 0; index < MAX_STRING; index++)
+	{
+		for(B_index = 0; B_index < ALPHABET; B_index++)
+			printf("%i ", hash_array[index][B_index] = 0);
+		putchar('\n');
+	}
+	
 	return;
 }
 
@@ -94,30 +102,33 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	potentially-matching symbols in the symbol table.*/
 	stack_count++;
 	
-	int local_state_array[SYMTAB_SIZE];
+	//int local_state_array[SYMTAB_SIZE];
 	int index_B = 0;
 	int local_count = 0;
 	int is_first_match = 1;
 	//int len = strlen(string);
 	
-	for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
-		local_state_array[index_B] = 0;
+	//for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
+	//	local_state_array[index_B] = 0;
 	
 	index = 0;
 	while(string[index] != '\0' && string[index] != '\n')
 	{
-		if(string[index] == hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET]
+		//is_first_match = 1;
+		if(hash_array[index][(int)string[index] - LOWERCASE_OFFSET])
 		{	
-			if(is_first_match)
+			if(is_first_run)
 			{
-				is_first_match = 0;
-				match_count = 0;
-			}
-			if(state_array[index_B] || is_first_run)
-			{
-				local_state_array[index_B] = 1;	
-
+				state_array[index] = 1;	
 				match_count++;	
+				local_count++;
+			}
+			
+			if(state_array[index])
+			{
+				//state_array[index] = 1;	
+
+				//match_count++;	
 				local_count++;	
 			}
 		}
@@ -125,12 +136,13 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 		if(local_count == 0)
 			return match_count;
 	
-		for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
-			state_array[index_B] = local_state_array[index_B];
+		//for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
+		//	state_array[index_B] = local_state_array[index_B];
 	
+		is_first_run = 0;
 		index++;
 	}
-	is_first_run = 0;
+	
 	
 	/*Check first layer of string array.
 	for(index_B = 0; index_B < SYMTAB_SIZE; index_B++)
@@ -190,15 +202,15 @@ int String_Compare(char string[STR_SIZE])
 	if(match_count == 0)
 	{	
 		printf("HELP %i\n", HELP);
-		return HELP;
+		//return HELP;
 	}
 	else if(match_count == 1)
 	{
 		printf("One match.\n");
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{
-			if(state_array[index] != 0)
-				return symtab[index].token;
+			//if(state_array[index] != 0)
+				//return symtab[index].token;
 		}
 	}
 	else
@@ -210,6 +222,10 @@ int String_Compare(char string[STR_SIZE])
 				printf(" - %s\n", symtab[index].str);
 		}	
 	}
+	//puts("State array:\n");
+	//for(index = 0; index < SYMTAB_SIZE; index++)
+	//	printf("%i\n", state_array[index]);
+
 
 	return 0;
 }
@@ -218,7 +234,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("xbox");
+	String_Compare("q");
 	
 return 0;
 }
