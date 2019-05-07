@@ -80,7 +80,7 @@ void SymTab_Init(void)
 		len = strlen(symtab[index].str);
 		for(B_index = 0; B_index < len; B_index++)
 		{
-			hash_array[index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 1;
+			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET] = 1;
 		}	
 	}	
 	
@@ -88,7 +88,7 @@ void SymTab_Init(void)
 	for(index = 0; index < MAX_STRING; index++)
 	{
 		for(B_index = 0; B_index < ALPHABET; B_index++)
-			printf("%i ", hash_array[index][B_index] = 0);
+			printf("%i ", hash_array[index][B_index]);
 		putchar('\n');
 	}
 	
@@ -234,7 +234,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("q");
+	String_Compare("u");
 	
 return 0;
 }
