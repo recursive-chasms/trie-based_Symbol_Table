@@ -34,19 +34,22 @@ typedef struct arr arr;
 
 tab symtab[SYMTAB_SIZE];
 
-arr hash_array[MAX_STRING][ALPHABET];
+//Parse table is a 2D array which is as long as the longest string and as wide as the lower-case alphabet.
+arr parse_table[MAX_STRING][ALPHABET];
 
 void SymTab_Init(void)
 {
 	int tab_i;
 	int str_i;
-	int C_index;
+	int ref_i;
 	int D_index;
 	int len;
 	int count;
 	
 	arr ptr;
 
+	/*The strings for this experiment are holdovers from the original
+	symbol table code from a module I wrote for a group Agile project.*/
 	strcpy(symtab[1].str, "down");
 	strcpy(symtab[2].str, "drop");
 	strcpy(symtab[3].str, "get");
@@ -64,42 +67,52 @@ void SymTab_Init(void)
 	strcpy(symtab[15].str, "use");
 	strcpy(symtab[16].str, "quit");
 
-	
+	//Initializes everything to zero.
 	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
 		for(str_i = 0; str_i < ALPHABET; str_i++)
 		{
-			hash_array[tab_i][str_i].val = 0;
-			hash_array[tab_i][str_i].count = 0;
-			for(C_index = 0; C_index < SYMTAB_SIZE; C_index++)
-				hash_array[tab_i][str_i].ref[C_index] = 0;
+			parse_table[tab_i][str_i].val = 0;
+			parse_table[tab_i][str_i].count = 0;
+			for(ref_i = 0; ref_i < SYMTAB_SIZE; ref_i++)
+				parse_table[tab_i][str_i].ref[ref_i] = 0;
 		}
 	}
 	
-	
+	//Populates the parse table.
 	for(tab_i = 0; tab_i < SYMTAB_SIZE; tab_i++)
 	{
-		C_index = 0; 
-		len = strlen(symtab[tab_i].str);
+		ref_i = 0; 
+		len = strlen(symtab[tab_i].str);//<--A little optimization. Figured I'd save the compiler the trouble.
 		for(str_i = 0; str_i < len; str_i++)
 		{
-			ptr = hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET];
+			/*Each letter of each symtab entry is placed into its corresponding
+			location in the parse table. This location is determined by the
+			value of the character, cast into an int and subtracted by 
+			the value needed to bring the ascii value of 'a' to 0.
+			
+			I used a temporary pointer here for optimization and readability.*/
+			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET];
 			
 			ptr.val = symtab[tab_i].str[str_i];
 			ptr.count++;
-			while(ptr.ref[C_index] != 0)
-				C_index++;
-			ptr.ref[C_index] = tab_i;
 			
-			hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] = ptr;
+			/*A given character in the parse table may have multiple symtab entries pointing to it.
+			We need to collect each of these references and store them next to each other */
+			while(ptr.ref[ref_i] != 0)
+				ref_i++;
+			ptr.ref[ref_i] = tab_i;
+			
+			parse_table[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] = ptr;
 		}	
 	}	
 	
-	puts("HASH ARRAY:\n");
+	//Not strictly necessary, but I like being able to see what the parse table looks like.
+	puts("PARSE TABLE:\n");
 	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
 		for(str_i = 0; str_i < ALPHABET; str_i++)
-			printf("%c ", hash_array[tab_i][str_i].val);
+			printf("%c ", parse_table[tab_i][str_i].val);
 		putchar('\n');
 	}
 	
@@ -120,12 +133,12 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	str_i = 0;
 	while(string[str_i] != '\0' && string[str_i] != '\n')
 	{
-		if(hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].val)
+		if(parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET].val)
 		{	
 			if(is_first_run)
 			{
 				ref_i = 0;
-				ptr = hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET];
+				ptr = parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET];
 				
 				while(ptr.ref[ref_i])
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
@@ -137,15 +150,13 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 			}
 			
 			if(state_array[str_i])
-			{
 				local_count++;	
-			}
 		}
 	
-		if(local_count == 0)
+		if(!local_count)
 			return match_count;
 	
-		hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
+		parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
 		is_first_run = 0;
 		str_i++;
 	}
@@ -173,7 +184,7 @@ int String_Compare(char string[STR_SIZE])
 		printf("One match.\n");
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{
-			if(state_array[index] != 0)
+			if(state_array[index])
 				printf(" - %s\n", symtab[state_array[index]].str);
 		}
 	}
@@ -183,7 +194,7 @@ int String_Compare(char string[STR_SIZE])
 		printf("match_count: %i\n", match_count);
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{	
-			if(state_array[index] != 0)
+			if(state_array[index])
 				printf(" - %s\n", symtab[state_array[index]].str);
 		}	
 	}
