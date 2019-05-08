@@ -2,21 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "userinput.h"
+//#include "userinput.h"
 //#include "include/symbol_table.h"
 
 #define SAFE_STACK 20000
 #define ALPHABET 26
 #define MAX_STRING 9
-#define SYMTAB_SIZE 16
+#define SYMTAB_SIZE 17
 #define LOWERCASE_OFFSET 97
-
-//#define STR_SIZE 512
+#define STR_SIZE 100
 
 int stack_count = 0;
 
-/*Quick and dirty symbol table for comparing ambiguous keywords. No time for a hash table. :/   ~Peter, April 20th*/
-
+//PETER ERNEST CARLE
+//Experimental parse table algorithm
 
 struct tab
 {
@@ -46,39 +45,23 @@ void SymTab_Init(void)
 	int len;
 	int count;
 
-	strcpy(symtab[0].str, "down");
-	strcpy(symtab[1].str, "drop");
-	strcpy(symtab[2].str, "get");
-	strcpy(symtab[3].str, "go");
-	strcpy(symtab[4].str, "help");
-	strcpy(symtab[5].str, "inventory");
-	strcpy(symtab[6].str, "kill");
-	strcpy(symtab[7].str, "left");
-	strcpy(symtab[8].str, "open");
-	strcpy(symtab[9].str, "right");
-	strcpy(symtab[10].str, "swim");
-	strcpy(symtab[11].str, "throw");
-	strcpy(symtab[12].str, "unlock");
-	strcpy(symtab[13].str, "up");
-	strcpy(symtab[14].str, "use");
-	strcpy(symtab[15].str, "quit");
+	strcpy(symtab[1].str, "down");
+	strcpy(symtab[2].str, "drop");
+	strcpy(symtab[3].str, "get");
+	strcpy(symtab[4].str, "go");
+	strcpy(symtab[5].str, "help");
+	strcpy(symtab[6].str, "inventory");
+	strcpy(symtab[7].str, "kill");
+	strcpy(symtab[8].str, "left");
+	strcpy(symtab[9].str, "open");
+	strcpy(symtab[10].str, "right");
+	strcpy(symtab[11].str, "swim");
+	strcpy(symtab[12].str, "throw");
+	strcpy(symtab[13].str, "unlock");
+	strcpy(symtab[14].str, "up");
+	strcpy(symtab[15].str, "use");
+	strcpy(symtab[16].str, "quit");
 
-	symtab[0].token = DOWN;
-	symtab[1].token = DROP;
-	symtab[2].token = GET;
-	symtab[3].token = GO;
-	symtab[4].token = HELP;
-	symtab[5].token = INVENTORY;
-	symtab[6].token = KILL;
-	symtab[7].token = LEFT;
-	symtab[8].token = OPEN;
-	symtab[9].token = RIGHT;
-	symtab[10].token = SWIM;
-	symtab[11].token = THROW;
-	symtab[12].token = UNLOCK;
-	symtab[13].token = UP;
-	symtab[14].token = USE;
-	symtab[15].token = QUIT;
 	
 	for(index = 0; index < MAX_STRING; index++)
 	{
@@ -113,10 +96,7 @@ void SymTab_Init(void)
 					printf("%i\n", hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].ref[D_index]);
 					D_index++;
 				}
-			
 			}
-
-			//hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].ref[B_index] = index;
 		}	
 	}	
 	
@@ -189,17 +169,14 @@ int String_Compare(char string[STR_SIZE])
 	
 	match_count = Sym_Compare(string, state_array, 0, 0, 1);
 	
-	if(match_count == 0)
-	{	
-		printf("HELP %i\n", HELP);
-		//return HELP;
-	}
+	if(match_count == 0)	
+		printf("HELP\n");
 	else if(match_count == 1)
 	{
 		printf("One match.\n");
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{
-			if(state_array[index] != 0) //TODO: Excludes 'down.'
+			if(state_array[index] != 0)
 				printf(" - %s\n", symtab[state_array[index]].str);
 		}
 	}
@@ -209,8 +186,7 @@ int String_Compare(char string[STR_SIZE])
 		printf("match_count: %i\n", match_count);
 		for(index = 0; index < SYMTAB_SIZE; index++)
 		{	
-			//printf("match_count: %i\n", match_count);
-			if(state_array[index] != 0) //TODO: Excludes 'down.'
+			if(state_array[index] != 0)
 				printf(" - %s\n", symtab[state_array[index]].str);
 		}	
 	}
@@ -226,7 +202,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("g");
+	String_Compare("d");
 	
 return 0;
 }
