@@ -151,7 +151,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 			{
 				B_index = 0;
 				while(hash_array[index][(int)string[index] - LOWERCASE_OFFSET].ref[B_index])
-				{
+				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
 					state_array[B_index] = hash_array[index][(int)string[index] - LOWERCASE_OFFSET].ref[B_index];
 					printf("State array: %i\n", state_array[B_index]);
 					B_index++;
