@@ -7,8 +7,8 @@
 
 #define SAFE_STACK 20000
 #define ALPHABET 26
-#define MAX_STRING 9
-#define SYMTAB_SIZE 17
+#define MAX_STRING 11
+#define SYMTAB_SIZE 20
 #define LOWERCASE_OFFSET 97
 #define STR_SIZE 100
 
@@ -65,7 +65,10 @@ void SymTab_Init(void)
 	strcpy(symtab[13].str, "unlock");
 	strcpy(symtab[14].str, "up");
 	strcpy(symtab[15].str, "use");
-	strcpy(symtab[16].str, "quit");
+	strcpy(symtab[16].str, "unnecessary");
+	strcpy(symtab[17].str, "quit");
+	strcpy(symtab[18].str, "until");
+	strcpy(symtab[19].str, "unti");
 
 	//Initializes everything to zero.
 	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
@@ -128,18 +131,20 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	int ref_i = 0;
 	int local_count = 0;
 	int is_first_match = 1;
+	int local_state_array[SYMTAB_SIZE];
 	arr ptr;
 	
 	str_i = 0;
 	while(string[str_i] != '\0' && string[str_i] != '\n')
 	{
+		local_count = 0;
+		ref_i = 0;
 		if(parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET].val)
 		{	
+			ptr = parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET];
+			
 			if(is_first_run)
-			{
-				ref_i = 0;
-				ptr = parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET];
-				
+			{	
 				while(ptr.ref[ref_i])
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
 					state_array[ref_i] = ptr.ref[ref_i];
@@ -147,6 +152,16 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 				}
 				match_count = ptr.count;
 				local_count++;
+			}
+			else
+			{	
+				while(ptr.ref[ref_i])
+				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
+					local_state_array[ref_i] = ptr.ref[ref_i];
+					ref_i++;
+				}
+				match_count = ptr.count;
+				local_count++;			
 			}
 			
 			if(state_array[str_i])
@@ -206,7 +221,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("u");
+	String_Compare("un");
 	
 return 0;
 }
