@@ -83,26 +83,15 @@ void SymTab_Init(void)
 		len = strlen(symtab[tab_i].str);
 		for(str_i = 0; str_i < len; str_i++)
 		{
-			ptr = hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] ;
-			//hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].val = symtab[tab_i].str[str_i];
-			ptr.val = symtab[tab_i].str[str_i];
-			hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].count++;
-			while(hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].ref[C_index] != 0)
-				C_index++;
-			hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].ref[C_index] = tab_i;
+			ptr = hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET];
 			
-			/*
-			if(symtab[tab_i].str[str_i] == 'u')
-			{
-				puts("References for u:\n");
-				D_index = 0;
-				while(hash_array[str_i][(int)symtab[index].str[str_i] - LOWERCASE_OFFSET].ref[D_index])
-				{
-					printf("%i\n", hash_array[str_i][(int)symtab[index].str[str_i] - LOWERCASE_OFFSET].ref[D_index]);
-					D_index++;
-				}
-			}
-			*/
+			ptr.val = symtab[tab_i].str[str_i];
+			ptr.count++;
+			while(ptr.ref[C_index] != 0)
+				C_index++;
+			ptr.ref[C_index] = tab_i;
+			
+			hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] = ptr;
 		}	
 	}	
 	
@@ -126,7 +115,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 	int ref_i = 0;
 	int local_count = 0;
 	int is_first_match = 1;
-
+	arr ptr;
 	
 	str_i = 0;
 	while(string[str_i] != '\0' && string[str_i] != '\n')
@@ -136,13 +125,14 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 			if(is_first_run)
 			{
 				ref_i = 0;
-				while(hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].ref[ref_i])
+				ptr = hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET];
+				
+				while(ptr.ref[ref_i])
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
-					state_array[ref_i] = hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].ref[ref_i];
-					printf("State array: %i\n", state_array[ref_i]);
+					state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
 				}
-				match_count = hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].count;
+				match_count = ptr.count;
 				local_count++;
 			}
 			
@@ -155,6 +145,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 		if(local_count == 0)
 			return match_count;
 	
+		hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
 		is_first_run = 0;
 		str_i++;
 	}
@@ -196,10 +187,6 @@ int String_Compare(char string[STR_SIZE])
 				printf(" - %s\n", symtab[state_array[index]].str);
 		}	
 	}
-	//puts("State array:\n");
-	//for(index = 0; index < SYMTAB_SIZE; index++)
-	//	printf("%i\n", state_array[index]);
-
 
 	return 0;
 }
@@ -208,7 +195,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("d");
+	String_Compare("u");
 	
 return 0;
 }
