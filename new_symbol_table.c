@@ -38,12 +38,14 @@ arr hash_array[MAX_STRING][ALPHABET];
 
 void SymTab_Init(void)
 {
-	int index;
-	int B_index;
+	int tab_i;
+	int str_i;
 	int C_index;
 	int D_index;
 	int len;
 	int count;
+	
+	arr ptr;
 
 	strcpy(symtab[1].str, "down");
 	strcpy(symtab[2].str, "drop");
@@ -63,84 +65,88 @@ void SymTab_Init(void)
 	strcpy(symtab[16].str, "quit");
 
 	
-	for(index = 0; index < MAX_STRING; index++)
+	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
-		for(B_index = 0; B_index < ALPHABET; B_index++)
+		for(str_i = 0; str_i < ALPHABET; str_i++)
 		{
-			hash_array[index][B_index].val = 0;
-			hash_array[index][B_index].count = 0;
+			hash_array[tab_i][str_i].val = 0;
+			hash_array[tab_i][str_i].count = 0;
 			for(C_index = 0; C_index < SYMTAB_SIZE; C_index++)
-				hash_array[index][B_index].ref[C_index] = 0;
+				hash_array[tab_i][str_i].ref[C_index] = 0;
 		}
 	}
 	
 	
-	for(index = 0; index < SYMTAB_SIZE; index++)
+	for(tab_i = 0; tab_i < SYMTAB_SIZE; tab_i++)
 	{
 		C_index = 0; 
-		len = strlen(symtab[index].str);
-		for(B_index = 0; B_index < len; B_index++)
+		len = strlen(symtab[tab_i].str);
+		for(str_i = 0; str_i < len; str_i++)
 		{
-			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].val = symtab[index].str[B_index];
-			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].count++;
-			while(hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].ref[C_index] != 0)
+			ptr = hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] ;
+			//hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].val = symtab[tab_i].str[str_i];
+			ptr.val = symtab[tab_i].str[str_i];
+			hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].count++;
+			while(hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].ref[C_index] != 0)
 				C_index++;
-			hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].ref[C_index] = index;
+			hash_array[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET].ref[C_index] = tab_i;
 			
-			if(symtab[index].str[B_index] == 'u')
+			/*
+			if(symtab[tab_i].str[str_i] == 'u')
 			{
 				puts("References for u:\n");
 				D_index = 0;
-				while(hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].ref[D_index])
+				while(hash_array[str_i][(int)symtab[index].str[str_i] - LOWERCASE_OFFSET].ref[D_index])
 				{
-					printf("%i\n", hash_array[B_index][(int)symtab[index].str[B_index] - LOWERCASE_OFFSET].ref[D_index]);
+					printf("%i\n", hash_array[str_i][(int)symtab[index].str[str_i] - LOWERCASE_OFFSET].ref[D_index]);
 					D_index++;
 				}
 			}
+			*/
 		}	
 	}	
 	
 	puts("HASH ARRAY:\n");
-	for(index = 0; index < MAX_STRING; index++)
+	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
-		for(B_index = 0; B_index < ALPHABET; B_index++)
-			printf("%c ", hash_array[index][B_index].val);
+		for(str_i = 0; str_i < ALPHABET; str_i++)
+			printf("%c ", hash_array[tab_i][str_i].val);
 		putchar('\n');
 	}
 	
 	return;
 }
 
-int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_count, int index, int is_first_run)
+int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_count, int str_i, int is_first_run)
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
 	potentially-matching symbols in the symbol table.*/
 		
-	int B_index = 0;
+	int ref_i = 0;
 	int local_count = 0;
 	int is_first_match = 1;
 
 	
-	index = 0;
-	while(string[index] != '\0' && string[index] != '\n')
+	str_i = 0;
+	while(string[str_i] != '\0' && string[str_i] != '\n')
 	{
-		if(hash_array[index][(int)string[index] - LOWERCASE_OFFSET].val)
+		if(hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].val)
 		{	
 			if(is_first_run)
 			{
-				B_index = 0;
-				while(hash_array[index][(int)string[index] - LOWERCASE_OFFSET].ref[B_index])
+				ref_i = 0;
+				while(hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].ref[ref_i])
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
-					state_array[B_index] = hash_array[index][(int)string[index] - LOWERCASE_OFFSET].ref[B_index];
-					printf("State array: %i\n", state_array[B_index]);
-					B_index++;
+					state_array[ref_i] = hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].ref[ref_i];
+					printf("State array: %i\n", state_array[ref_i]);
+					ref_i++;
 				}
-				match_count = hash_array[index][(int)string[index] - LOWERCASE_OFFSET].count;
+				match_count = hash_array[str_i][(int)string[str_i] - LOWERCASE_OFFSET].count;
 				local_count++;
 			}
 			
-			if(state_array[index])
+			if(state_array[str_i])
 			{
 				local_count++;	
 			}
@@ -150,7 +156,7 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 			return match_count;
 	
 		is_first_run = 0;
-		index++;
+		str_i++;
 	}
 		
 	return match_count;
