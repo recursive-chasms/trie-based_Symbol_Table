@@ -120,48 +120,62 @@ void SymTab_Init(void)
 	return;
 }
 
-int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_count, int str_i, int is_first_run)
+int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
+int str_i, int is_first_run)
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
 	potentially-matching symbols in the symbol table.*/
-		
+	
+	int index;	
 	int ref_i = 0;
 	int local_count = 0;
-	int is_first_match = 1;
 	int local_state_array[SYMTAB_SIZE];
 	arr ptr;
 	
-	str_i = 0;
-	while(string[str_i] != '\0' && string[str_i] != '\n')
+	stack_count++;
+	memset(local_state_array, 0, (SYMTAB_SIZE * sizeof(int)));
+	
+	//str_i = 0;
+	if(string[str_i] != '\0' && string[str_i] != '\n')
 	{
-		local_count = 0;
-		ref_i = 0;
+		//local_count = 0;
+		//ref_i = 0;
 		if(parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET].val)
 		{	
 			ptr = parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET];
 			
 			if(is_first_run)
 			{	
-				while(ptr.ref[ref_i])
-				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
-					state_array[ref_i] = ptr.ref[ref_i];
-					ref_i++;
-					local_count++;
-				}
-				//match_count = ptr.count;
-				
-			}
-			else
-			{	
+				//local_state_array = state_array;
 				while(ptr.ref[ref_i])
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
 					local_state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
-					local_count++;
+					//local_count++;
 				}
 				//match_count = ptr.count;
-		
+				prev_state_array = local_state_array;
+				local_count++;
+			}
+			else
+			{	
+				for(index = 0; index < SYMTAB_SIZE; index++)
+				{
+					if(prev_state_array[index] == ptr.ref[index])
+					{
+						while(ptr.ref[ref_i])
+						{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
+							local_state_array[ref_i] = ptr.ref[ref_i];
+							ref_i++;
+							//local_count++;
+						}
+						//match_count = ptr.count;
+						local_count++;
+						prev_state_array = local_state_array;
+					}
+					break;
+				}
 			}
 			
 			//if(state_array[str_i])
@@ -169,11 +183,23 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 		}
 	
 		if(!local_count)
+		{
+			for(index = 0; index < SYMTAB_SIZE; index++)
+				state_array[index] = prev_state_array[index];
 			return state_array;
-	
+		}
+			
 		parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
 		is_first_run = 0;
 		str_i++;
+		
+		if(stack_count < SAFE_STACK)
+			state_array = Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run);
+		else
+		{
+			puts("ERROR: Recursion potentially out of control. Exiting.\n");
+			exit(1);
+		}
 	}
 		
 	return state_array;
@@ -190,7 +216,7 @@ int String_Compare(char string[STR_SIZE])
 	for(index = 0; index < SYMTAB_SIZE; index++)
 		state_array[index] = 0;	
 	
-	state_array = Sym_Compare(string, state_array, 0, 0, 1);
+	state_array = Sym_Compare(string, state_array, NULL, 0, 1);
 	
 	for(index = 0; index < SYMTAB_SIZE; index++)
 	{
