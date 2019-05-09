@@ -120,7 +120,7 @@ void SymTab_Init(void)
 	return;
 }
 
-int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
+void Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
 int str_i, int is_first_run)
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
@@ -152,31 +152,43 @@ int str_i, int is_first_run)
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
 					local_state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
-					//local_count++;
+					local_count++;
 				}
 				//match_count = ptr.count;
 				prev_state_array = local_state_array;
-				local_count++;
+				//local_count++;
+				printf("FIRST COUNT: %i\n", local_count);
+				for(index = 0; index < SYMTAB_SIZE; index++)
+					printf("%i ", prev_state_array[index]);
+				putchar('\n');
 			}
 			else
 			{	
-				for(index = 0; index < SYMTAB_SIZE; index++)
+				index = 0;
+				while(prev_state_array[index])
 				{
-					if(prev_state_array[index] == ptr.ref[index])
+					if(symtab[prev_state_array[index]].str[str_i] == string[str_i])
 					{
-						while(ptr.ref[ref_i])
-						{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
-							local_state_array[ref_i] = ptr.ref[ref_i];
-							ref_i++;
+						//while(ptr.ref[ref_i])
+						//{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
+						local_state_array[ref_i] = prev_state_array[index];
+						ref_i++;
 							//local_count++;
-						}
+						//}
 						//match_count = ptr.count;
 						local_count++;
-						prev_state_array = local_state_array;
+						//prev_state_array = local_state_array;
 					}
-					break;
+					index++;
+					//break;
 				}
+				if(local_count)
+					prev_state_array = local_state_array;
 			}
+			printf("LOCAL COUNT: %i\n", local_count);
+			for(index = 0; index < SYMTAB_SIZE; index++)
+				printf("%i ", prev_state_array[index]);
+			putchar('\n');			
 			
 			//if(state_array[str_i])
 			//	local_count++;	
@@ -186,7 +198,7 @@ int str_i, int is_first_run)
 		{
 			for(index = 0; index < SYMTAB_SIZE; index++)
 				state_array[index] = prev_state_array[index];
-			return state_array;
+			return;
 		}
 			
 		parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
@@ -194,7 +206,7 @@ int str_i, int is_first_run)
 		str_i++;
 		
 		if(stack_count < SAFE_STACK)
-			state_array = Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run);
+			Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run);
 		else
 		{
 			puts("ERROR: Recursion potentially out of control. Exiting.\n");
@@ -202,13 +214,14 @@ int str_i, int is_first_run)
 		}
 	}
 		
-	return state_array;
+	return;
 } 
 
 
 int String_Compare(char string[STR_SIZE])
 {		
 	int state_array[SYMTAB_SIZE];
+	//int * ptr;
 	
 	int index;
 	int match_count = 0;
@@ -216,7 +229,8 @@ int String_Compare(char string[STR_SIZE])
 	for(index = 0; index < SYMTAB_SIZE; index++)
 		state_array[index] = 0;	
 	
-	state_array = Sym_Compare(string, state_array, NULL, 0, 1);
+	Sym_Compare(string, state_array, NULL, 0, 1);
+	//state_array = &ptr;
 	
 	for(index = 0; index < SYMTAB_SIZE; index++)
 	{
