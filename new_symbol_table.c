@@ -193,25 +193,25 @@ int str_i, int is_first_run)
 			//if(state_array[str_i])
 			//	local_count++;	
 		}
-	
-		if(!local_count)
-		{
-			for(index = 0; index < SYMTAB_SIZE; index++)
-				state_array[index] = prev_state_array[index];
-			return;
-		}
+	}
+
+	if(!local_count)
+	{
+		for(index = 0; index < SYMTAB_SIZE; index++)
+			state_array[index] = prev_state_array[index];
+		return;
+	}
 			
-		parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
-		is_first_run = 0;
-		str_i++;
+	parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
+	is_first_run = 0;
+	str_i++;
 		
-		if(stack_count < SAFE_STACK)
-			Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run);
-		else
-		{
-			puts("ERROR: Recursion potentially out of control. Exiting.\n");
-			exit(1);
-		}
+	if(stack_count < SAFE_STACK)
+		Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run);
+	else
+	{
+		puts("ERROR: Recursion potentially out of control. Exiting.\n");
+		exit(1);
 	}
 		
 	return;
@@ -267,7 +267,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("un");
+	String_Compare("unn");
 	
 return 0;
 }
