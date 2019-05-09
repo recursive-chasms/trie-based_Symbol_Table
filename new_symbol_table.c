@@ -90,13 +90,11 @@ void SymTab_Init(void)
 		for(str_i = 0; str_i < len; str_i++)
 		{
 			/*Each letter of each symtab entry is placed into its corresponding
-			location in the parse table. This location is determined by the
-			value of the character, cast into an int and subtracted by 
-			the value needed to bring the ascii value of 'a' to 0.
-			
-			I used a temporary pointer here for optimization and readability.*/
-			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET];
-			
+			location in the parse table. The index of this location is determined by the
+			value of the character being cast into an integer and subtracted by 
+			the value needed to bring the ascii value of 'a' to 0.*/
+			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET];			
+			//I used a temporary pointer here for optimization and readability.
 			ptr.val = symtab[tab_i].str[str_i];
 			ptr.count++;
 			
@@ -104,7 +102,7 @@ void SymTab_Init(void)
 			We need to collect each of these references and store them next to each other */
 			while(ptr.ref[ref_i] != 0)
 				ref_i++;
-			ptr.ref[ref_i] = tab_i;
+			ptr.ref[ref_i] = tab_i;//<--This reference is used to index back into the symbol table for printing at the end of the process.
 			
 			parse_table[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] = ptr;
 		}	
@@ -149,9 +147,10 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
 					state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
+					local_count++;
 				}
-				match_count = ptr.count;
-				local_count++;
+				//match_count = ptr.count;
+				
 			}
 			else
 			{	
@@ -159,24 +158,25 @@ int Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int match_c
 				{	//TODO: A hash table or BST would probably be more efficient here in cases of multiple references.
 					local_state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
+					local_count++;
 				}
-				match_count = ptr.count;
-				local_count++;			
+				//match_count = ptr.count;
+		
 			}
 			
-			if(state_array[str_i])
-				local_count++;	
+			//if(state_array[str_i])
+			//	local_count++;	
 		}
 	
 		if(!local_count)
-			return match_count;
+			return state_array;
 	
 		parse_table[str_i][(int)string[str_i] - LOWERCASE_OFFSET] = ptr;
 		is_first_run = 0;
 		str_i++;
 	}
 		
-	return match_count;
+	return state_array;
 } 
 
 
@@ -185,12 +185,18 @@ int String_Compare(char string[STR_SIZE])
 	int state_array[SYMTAB_SIZE];
 	
 	int index;
-	int match_count;
+	int match_count = 0;
 
 	for(index = 0; index < SYMTAB_SIZE; index++)
 		state_array[index] = 0;	
 	
-	match_count = Sym_Compare(string, state_array, 0, 0, 1);
+	state_array = Sym_Compare(string, state_array, 0, 0, 1);
+	
+	for(index = 0; index < SYMTAB_SIZE; index++)
+	{
+		if(state_array[index])
+			match_count++;
+	}
 	
 	if(match_count == 0)	
 		printf("HELP\n");
