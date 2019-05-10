@@ -7,7 +7,8 @@
 #define MAX_STRING 11
 #define SYMTAB_SIZE 20
 #define LOWERCASE_OFFSET 97
-#define STR_SIZE 100
+#define STR_SIZE 50
+#define MAX_REF 30
 
 int stack_count = 0;
 int iterations = 0;
@@ -24,7 +25,7 @@ similar to the
 
 struct tab
 {
-	char str[STR_SIZE];
+	char str[MAX_REF];
 	int token;
 };
 typedef struct tab tab;
@@ -33,7 +34,7 @@ struct arr
 {
 	int val;
 	int count;
-	int ref[SYMTAB_SIZE];
+	int ref[MAX_REF];
 };
 typedef struct arr arr;
 
@@ -58,7 +59,7 @@ tab* SymTab_Init(void)
 	
 	arr ptr;
 	FILE* fptr;
-	char buf[STR_SIZE];
+	char buf[MAX_REF];
 	
 	fptr = fopen("input.txt", "r");
 	if(fptr == NULL)
@@ -74,7 +75,7 @@ tab* SymTab_Init(void)
 		else if(input == EOF)
 			break;
 	}
-	//printf("FILE LENGTH: %i\n", file_length);
+	printf("FILE LENGTH: %i\n", file_length);
 	//fclose(fptr);
 	
 	fptr = freopen("input.txt", "r", fptr);
@@ -91,7 +92,8 @@ tab* SymTab_Init(void)
 		exit(1);
 	}
 
-	for(index = 0; index < file_length; index++)
+	index = 0;
+	while(index < file_length && index < SYMTAB_SIZE)
 	{
 		str_i = 0;
 		//fgets(&buf, STR_SIZE, fptr);
@@ -111,13 +113,14 @@ tab* SymTab_Init(void)
 			}
 			
 			str_i++;
-			if(str_i >= STR_SIZE)
+			if(str_i >= MAX_REF)
 				break;
 		}
 		
 		//strcpy(symtab[index].str, buf);
+		index++;
 	}
-	//printf("first string: %s\n", symtab[1].str);
+	printf("first string: %s\n", symtab[1].str);
 
 	/*Most of the strings for this experiment are holdovers from the original
 	symbol table code from a module I wrote for a group Agile project.*/
@@ -151,7 +154,7 @@ tab* SymTab_Init(void)
 		{
 			parse_table[tab_i][str_i].val = 0;
 			parse_table[tab_i][str_i].count = 0;
-			for(ref_i = 0; ref_i < SYMTAB_SIZE; ref_i++)
+			for(ref_i = 0; ref_i < MAX_REF; ref_i++)
 				parse_table[tab_i][str_i].ref[ref_i] = 0;
 		}
 	}
@@ -334,7 +337,7 @@ int String_Compare(char string[STR_SIZE], tab* symtab)
 
 int main(int argc, char * argv[])
 {
-	char buf[STR_SIZE];
+	char buf[MAX_STRING];
 
 	if(argv[1] == NULL)
 	{
@@ -342,7 +345,7 @@ int main(int argc, char * argv[])
 		exit(0);
 	}
 
-	strncpy(buf, argv[1], STR_SIZE);
+	strncpy(buf, argv[1], MAX_STRING);
 	//printf("%s\n", buf);
 
 	tab* symtab;
