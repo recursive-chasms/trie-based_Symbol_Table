@@ -5,10 +5,10 @@
 #define SAFE_STACK 20000
 #define ALPHABET 26
 #define MAX_STRING 11
-#define SYMTAB_SIZE 20
+#define SYMTAB_SIZE 200
 #define LOWERCASE_OFFSET 97
 #define STR_SIZE 50
-#define MAX_REF 30
+#define MAX_REF 200
 
 int stack_count = 0;
 int iterations = 0;
@@ -76,7 +76,6 @@ tab* SymTab_Init(void)
 			break;
 	}
 	printf("FILE LENGTH: %i\n", file_length);
-	//fclose(fptr);
 	
 	fptr = freopen("input.txt", "r", fptr);
 	if(fptr == NULL)
@@ -96,7 +95,6 @@ tab* SymTab_Init(void)
 	while(index < file_length && index < SYMTAB_SIZE)
 	{
 		str_i = 0;
-		//fgets(&buf, STR_SIZE, fptr);
 		
 		while(1)
 		{
@@ -117,7 +115,6 @@ tab* SymTab_Init(void)
 				break;
 		}
 		
-		//strcpy(symtab[index].str, buf);
 		index++;
 	}
 	printf("first string: %s\n", symtab[1].str);
@@ -213,6 +210,7 @@ int str_i, int is_first_run, tab* symtab)
 	arr ptr;
 	
 	iterations++;
+	puts("Sym_Compare call\n");
 	stack_count++;
 
 	if(string[str_i] != '\0' && string[str_i] != '\n')
@@ -229,6 +227,7 @@ int str_i, int is_first_run, tab* symtab)
 					ref_i++;
 					local_count++;
 					iterations++;
+					puts("1111111111 Copy ref\n");
 				}
 				local_state_array[ref_i] = -1;
 				prev_state_array = local_state_array;
@@ -246,6 +245,7 @@ int str_i, int is_first_run, tab* symtab)
 					}
 					index++;
 					iterations++;
+					puts("++++++++ Copy other ref\n");
 				}
 				local_state_array[ref_i] = -1;
 				if(local_count)
@@ -262,11 +262,15 @@ int str_i, int is_first_run, tab* symtab)
 
 	if(!local_count)
 	{
-		for(index = 0; index < SYMTAB_SIZE; index++)
+		index = 0;
+		while(prev_state_array[index] != -1)
 		{
 			state_array[index] = prev_state_array[index];
 			iterations++;
+			puts("Final state_array copy.\n");
+			index++;
 		}
+		state_array[index] = -1;
 		return;
 	}
 			
