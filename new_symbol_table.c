@@ -13,6 +13,7 @@
 #define STR_SIZE 100
 
 int stack_count = 0;
+int iterations = 0;
 
 //PETER ERNEST CARLE
 //Experimental parse table algorithm
@@ -133,8 +134,10 @@ int str_i, int is_first_run)
 	int local_state_array[SYMTAB_SIZE];
 	arr ptr;
 	
+	iterations++;
 	stack_count++;
-	memset(local_state_array, 0, (SYMTAB_SIZE * sizeof(int)));
+	//memset(local_state_array, 0, (SYMTAB_SIZE * sizeof(int)));
+	//local_state_array[0] = -1;
 	
 	//str_i = 0;
 	if(string[str_i] != '\0' && string[str_i] != '\n')
@@ -153,19 +156,20 @@ int str_i, int is_first_run)
 					local_state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
 					local_count++;
+					iterations++;
 				}
-				//match_count = ptr.count;
+				local_state_array[ref_i] = -1;
 				prev_state_array = local_state_array;
 				//local_count++;
-				printf("FIRST COUNT: %i\n", local_count);
-				for(index = 0; index < SYMTAB_SIZE; index++)
-					printf("%i ", prev_state_array[index]);
-				putchar('\n');
+				//printf("FIRST COUNT: %i\n", local_count);
+				//for(index = 0; index < SYMTAB_SIZE; index++)
+				//	printf("%i ", prev_state_array[index]);
+				//putchar('\n');
 			}
 			else
 			{	
 				index = 0;
-				while(prev_state_array[index])
+				while(prev_state_array[index] != -1)
 				{
 					if(symtab[prev_state_array[index]].str[str_i] == string[str_i])
 					{
@@ -180,25 +184,36 @@ int str_i, int is_first_run)
 						//prev_state_array = local_state_array;
 					}
 					index++;
+					iterations++;
 					//break;
 				}
+				local_state_array[ref_i] = -1;
 				if(local_count)
 					prev_state_array = local_state_array;
 			}
-			printf("LOCAL COUNT: %i\n", local_count);
-			for(index = 0; index < SYMTAB_SIZE; index++)
-				printf("%i ", prev_state_array[index]);
-			putchar('\n');			
-			
+			//printf("LOCAL COUNT: %i\n", local_count);
+			//for(index = 0; index < SYMTAB_SIZE; index++)
+			//	printf("%i ", prev_state_array[index]);
+			//putchar('\n');			
+			//
 			//if(state_array[str_i])
 			//	local_count++;	
 		}
 	}
 
+	if(!local_count && is_first_run)
+	{
+		state_array[0] = -1;
+		return;
+	}
+
 	if(!local_count)
 	{
 		for(index = 0; index < SYMTAB_SIZE; index++)
+		{
 			state_array[index] = prev_state_array[index];
+			iterations++;
+		}
 		return;
 	}
 			
@@ -226,16 +241,19 @@ int String_Compare(char string[STR_SIZE])
 	int index;
 	int match_count = 0;
 
-	for(index = 0; index < SYMTAB_SIZE; index++)
-		state_array[index] = 0;	
+	//for(index = 0; index < SYMTAB_SIZE; index++)
+	//	state_array[index] = 0;	
+	//state_array[0] = -1;
 	
 	Sym_Compare(string, state_array, NULL, 0, 1);
 	//state_array = &ptr;
 	
-	for(index = 0; index < SYMTAB_SIZE; index++)
+	index = 0;
+	while(state_array[index] != -1)
 	{
 		if(state_array[index])
 			match_count++;
+		index++;
 	}
 	
 	if(match_count == 0)	
@@ -243,22 +261,28 @@ int String_Compare(char string[STR_SIZE])
 	else if(match_count == 1)
 	{
 		printf("One match.\n");
-		for(index = 0; index < SYMTAB_SIZE; index++)
+		index = 0;
+		while(state_array[index] != -1)
 		{
 			if(state_array[index])
 				printf(" - %s\n", symtab[state_array[index]].str);
+			index++;
 		}
 	}
 	else
 	{
 		printf("Ambiguous input. Possible options:\n");
 		printf("match_count: %i\n", match_count);
-		for(index = 0; index < SYMTAB_SIZE; index++)
+		index = 0;
+		while(state_array[index] != -1)
 		{	
 			if(state_array[index])
 				printf(" - %s\n", symtab[state_array[index]].str);
+			index++;
 		}	
 	}
+
+	printf("ITERATIONS: %i\n", iterations);
 
 	return 0;
 }
@@ -267,7 +291,7 @@ int String_Compare(char string[STR_SIZE])
 int main()
 {
 	SymTab_Init();
-	String_Compare("unn");
+	String_Compare("xbox");
 	
 return 0;
 }
