@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #define SAFE_STACK 20000
 #define ALPHABET 26
 #define MAX_STRING 11
-#define SYMTAB_SIZE 200
+#define SYMTAB_SIZE 87
 #define LOWERCASE_OFFSET 97
-#define STR_SIZE 50
-#define MAX_REF 200
+#define STR_SIZE 30
+#define MAX_REF 30
 
 int stack_count = 0;
 int iterations = 0;
@@ -41,14 +42,14 @@ typedef struct arr arr;
 //tab symtab[SYMTAB_SIZE];
 
 //Parse table is a 2D array which is as long as the longest string and as wide as the lower-case alphabet.
-arr parse_table[MAX_STRING][ALPHABET];
+//arr parse_table[MAX_STRING][ALPHABET];
 
-tab* SymTab_Init(void)
+tab* SymTab_Init(arr parse_table[MAX_STRING][ALPHABET])
 {
-	int index;
-	int tab_i;
-	int str_i;
-	int ref_i;
+	unsigned long long index;
+	unsigned long long tab_i;
+	unsigned long long str_i;
+	unsigned long long ref_i;
 	int D_index;
 	int len;
 	int count;
@@ -61,7 +62,7 @@ tab* SymTab_Init(void)
 	FILE* fptr;
 	char buf[MAX_REF];
 	
-	fptr = fopen("input.txt", "r");
+	fptr = fopen("weird_input.txt", "r");
 	if(fptr == NULL)
 	{
 		puts("fopen() failed. Exiting.\n");
@@ -77,7 +78,7 @@ tab* SymTab_Init(void)
 	}
 	printf("FILE LENGTH: %i\n", file_length);
 	
-	fptr = freopen("input.txt", "r", fptr);
+	fptr = freopen("weird_input.txt", "r", fptr);
 	if(fptr == NULL)
 	{
 		puts("freopen() failed. Exiting.\n");
@@ -175,7 +176,11 @@ tab* SymTab_Init(void)
 			/*A given character in the parse table may have multiple symtab entries pointing to it.
 			We need to collect each of these references and store them next to each other */
 			while(ptr.ref[ref_i] != 0)
+			{
 				ref_i++;
+				if(tab_i == 100 && str_i == 0)
+					raise(SIGTRAP);
+			}
 			ptr.ref[ref_i] = tab_i;//<--This reference is used to index back into the symbol table for printing at the end of the process.
 			
 			parse_table[str_i][(int)symtab[tab_i].str[str_i] - LOWERCASE_OFFSET] = ptr;
@@ -197,14 +202,14 @@ tab* SymTab_Init(void)
 }
 
 void Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
-int str_i, int is_first_run, tab* symtab)
+int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ALPHABET])
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
 	potentially-matching symbols in the symbol table.*/
 	
-	int index;	
-	int ref_i = 0;
+	unsigned long long index;	
+	unsigned long long ref_i = 0;
 	int local_count = 0;
 	int local_state_array[SYMTAB_SIZE];
 	arr ptr;
@@ -279,7 +284,7 @@ int str_i, int is_first_run, tab* symtab)
 	str_i++;
 		
 	if(stack_count < SAFE_STACK)
-		Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run, symtab);
+		Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run, symtab, parse_table);
 	else
 	{
 		puts("ERROR: Recursion potentially out of control. Exiting.\n");
@@ -290,14 +295,14 @@ int str_i, int is_first_run, tab* symtab)
 } 
 
 
-int String_Compare(char string[STR_SIZE], tab* symtab)
+int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ALPHABET])
 {		
 	int state_array[SYMTAB_SIZE];
 	
 	int index;
 	int match_count = 0;
 	
-	Sym_Compare(string, state_array, NULL, 0, 1, symtab);
+	Sym_Compare(string, state_array, NULL, 0, 1, symtab, parse_table);
 	
 	index = 0;
 	while(state_array[index] != -1)
@@ -353,9 +358,11 @@ int main(int argc, char * argv[])
 	//printf("%s\n", buf);
 
 	tab* symtab;
+	
+	arr parse_table[MAX_STRING][ALPHABET];
 
-	symtab = SymTab_Init();
-	String_Compare(buf, symtab);
+	symtab = SymTab_Init(parse_table);
+	String_Compare(buf, symtab, parse_table);
 	
 	free(symtab);
 	
