@@ -23,6 +23,22 @@ similar to the
 
 */
 
+/*
+
+    I think I figured out what the problems were for large input sizes:
+    
+    1. SYMTAB_SIZE should closely match file size.
+    2. DON'T USE GLOBAL VARIABLES. That's what I get for being lazy.
+    3. Watch for repeated inputs. Reference tracking doesn't seem to like the same word recurring multiple times.
+    4. Reference tracking in general seems fragile. I would need to review its general principles if I were to continue with this.
+    5. Watch for unusual inputs, i.e., anything that isn't standard lowercase.
+    
+    Use raise(SIGTRAP) to place tracepoints for GDB.
+
+
+
+*/
+
 
 struct tab
 {
