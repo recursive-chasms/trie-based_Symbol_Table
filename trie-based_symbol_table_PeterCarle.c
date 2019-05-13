@@ -15,11 +15,76 @@ int stack_count = 0;
 int iterations = 0;
 
 //PETER ERNEST CARLE
-//Experimental parse table algorithm
+//Independently-created trie-based symbol table
 
 /*
-This version of my parse table algorithm, which I later discovered to be
-similar to the 
+This personal research project grew largely out of Professor Tom Halverson's 
+symbol table that he presented in his Language Processing class.
+He was very self-deprecating about it, for the symtab code was simple and
+succinct at the expense of being computationally efficient. Pragmatism prevailed
+in that class, for his emphasis was on well-formed language constructs, rather
+than the minutia of the supporting code-base. He  didn't want us underclassmen 
+to get side-tracked too much.
+
+In any case, his symbol table got me thinking about how I would go about doing 
+it if I had the time. I used my high-level understanding of hash tables (which
+I had never implemented in code) and envisioned a series of single-character
+hash tables that were indexed via input at each consecutive character from
+the input string. 
+
+The theoretical advantage of this would be *constant* look-up time for a given
+string--a performance theoretically superior to that of either a complex hash 
+table or a binary search tree.
+
+The idea for the algorithm lay dormant for a couple of months until the 
+implementation phase of a group project for my Agile class. I needed to produce
+a symbol table to prompt the user for possible keyword inputs in response to 
+ambiguous entries, a la command-line GDB.
+
+While the implementation that made it into the project submission had linear
+look-up time (due to time constraints), I subsequently completed a functional 
+version of the module that incorporated the aforementioned concepts.
+
+I believe it would have succeeded in having constant look-up time--except for
+the fact that references to possible keyword entries had to be copied
+for each character of the input string. Depending on the number of references,
+the runtime could vary.
+
+The name of that module is ambig_input_PeterCarle.c, and it was nearly complete
+around Friday, May 10, 2019, when I did some research and discovered 
+that the underlying data structure was called a trie (a.k.a., a digital tree,
+radix tree or prefix tree)--a deterministic finite automaton that was apparently 
+described by René de la Briandais in 1959. I was sixty years late to the party.
+
+Still, I came up with the general concept and the source code for the trie 
+independently within my Computer Science minor, using only my conceptual 
+understanding of hash tables and parse tables. (I had spent some time earlier 
+in the semester looking at the source code for Lex and YACC parse tables as 
+well; it's likely my Language Processing class subconsciously affected this creation.) 
+
+For what ambig_input_PeterCarle is, I'm proud of it, though it is currently
+only designed to handle lowercase alphabetic input, and it doesn't like 
+repeated terms within the input dictionaries. Also, it's not the HAT-trie 
+algorithm; it doesn't take CPU caching into account. (The binary radix trie is 
+something I would like to study in further depth in the future.) 
+
+These things aside, I did write it with time-based performance considerations
+in mind at every turn, and I included debug output to corroborate this.
+
+---
+
+ambig_input has run its course. I could do more things with it, but I figure
+it's time to do away with ambiguous reference tracking and replace it with 
+standard symbol table functionality. If it can be integrated as a potential 
+symbol table within Lex and YACC for a reasonably-performing compiler, 
+then perhaps it can serve as a public demonstration of a personal development
+project of reasonable complexity. I imagine it's quite common for Computer
+Science undergrads to independently invent algorithms and data structures that
+have been around for decades. But I believe it's the drive towards independent
+thinking and discovery that counts in this case.
+
+§ Peter Carle §
+May 13, 2019
 
 */
 
