@@ -62,11 +62,13 @@ understanding of hash tables and parse tables. (I had spent some time earlier
 in the semester looking at the source code for Lex and YACC parse tables as 
 well; it's likely my Language Processing class subconsciously affected this creation.) 
 
-For what ambig_input_PeterCarle is, I'm proud of it, though it is currently
-only designed to handle lowercase ASCII_TAB_SIZEic input, and it doesn't like 
-repeated terms within the input dictionaries. Also, it's not the HAT-trie 
-algorithm; it doesn't take CPU caching into account. (The binary radix trie is 
-something I would like to study in further depth in the future.) 
+For what ambig_input_PeterCarle is, I'm proud of it, though the current limit
+it faces is the number of references a single character position in the trie
+can take. It doesn't seem to like going much above 100. I'm too burned out on it
+to investigate the exact cause of the segfaults on this front. Also,
+it's not the HAT-trie algorithm; it doesn't take CPU caching into account. 
+(The binary radix trie is  something I would like to study in further depth in 
+the future.) 
 
 These things aside, I did write it with time-based performance considerations
 in mind at every turn, and I included debug output to corroborate this.
