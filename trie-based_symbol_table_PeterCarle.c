@@ -132,10 +132,10 @@ typedef struct arr arr;
 
 tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
-	unsigned long long index;
-	unsigned long long tab_i;
-	unsigned long long str_i;
-	unsigned long long ref_i;
+	int index;
+	int tab_i;
+	int str_i;
+	int ref_i;
 
 	int len;
 	int count;
@@ -254,6 +254,20 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 	return symtab;
 }
 
+/*
+TODO: I believe most of Sym_Compare can be replaced with the simpler 
+symbol table functions: In_Table() and Get_Type(). Some refactoring
+will be necessary for SymTab_Init(); most of the code will be moved
+into Add_Symbol(). 
+
+Add_Symbol() should be consolidated from Tom's two separate functions (addtab
+and addtype). Since both additions are made at once, it's not necessary
+to separate them out.
+
+The code should be made to work on its own before attempted integration
+with the Lex and YACC files for A8 (from Language Processing). 
+*/
+
 void Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
 int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
@@ -261,8 +275,8 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 	If necessary, this is used to indicate potential valid inputs to the user among the 
 	potentially-matching symbols in the symbol table.*/
 	
-	unsigned long long index;	
-	unsigned long long ref_i = 0;
+	int index;	
+	int ref_i = 0;
 	int local_count = 0;
 	int local_state_array[SYMTAB_SIZE];
 	arr ptr;
