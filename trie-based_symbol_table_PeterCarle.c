@@ -65,10 +65,11 @@ well; it's likely my Language Processing class subconsciously affected this crea
 For what ambig_input_PeterCarle is, I'm proud of it, though the current limit
 it faces is the number of references a single character position in the trie
 can take. It doesn't seem to like going much above 100. I'm too burned out on it
-to investigate the exact cause of the segfaults on this front. Also,
-it's not the HAT-trie algorithm; it doesn't take CPU caching into account. 
-(The binary radix trie is  something I would like to study in further depth in 
-the future.) 
+to investigate the exact cause of the segfaults on this front. 
+
+On another note, although it doesn't take CPU caching into account, 
+the binary radix trie is something I would like to study in further depth in 
+the future.
 
 These things aside, I did write it with time-based performance considerations
 in mind at every turn, and I included debug output to corroborate this.
@@ -113,17 +114,22 @@ int gettype( char *s)
 
 */
 
+#define UNTYPED -1
+#define INT 10
+#define CHAR 20
+
+
 struct tab
 {
 	char str[MAX_REF];
-	int token;
+	int type;
 };
 typedef struct tab tab;
 
 struct arr
 {
 	int val;
-	int count;
+	int type;
 	int ref[MAX_REF];
 };
 typedef struct arr arr;
@@ -142,13 +148,16 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 	int input;
 	int file_length = 0;
 	
+	unsigned char hash = 0;
+	unsigned char temp = 0;
+	
 	tab* symtab;
 	
 	arr ptr;
 	FILE* fptr;
 	char buf[MAX_REF];
 	
-	fptr = fopen("weird_input.txt", "r");
+	fptr = fopen("input.txt", "r");
 	if(fptr == NULL)
 	{
 		puts("fopen() failed. Exiting.\n");
@@ -163,7 +172,7 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 			break;
 	}
 	
-	fptr = freopen("weird_input.txt", "r", fptr);
+	fptr = freopen("input.txt", "r", fptr);
 	if(fptr == NULL)
 	{
 		puts("freopen() failed. Exiting.\n");
@@ -208,36 +217,46 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 		for(str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
 		{
 			parse_table[tab_i][str_i].val = 0;
-			parse_table[tab_i][str_i].count = 0;
+			parse_table[tab_i][str_i].type = 0;
 			for(ref_i = 0; ref_i < MAX_REF; ref_i++)
 				parse_table[tab_i][str_i].ref[ref_i] = 0;
 		}
 	}
 	
 	//Populates the parse table.
-	for(tab_i = 0; tab_i < SYMTAB_SIZE; tab_i++)
+	for(tab_i = 0; tab_i < file_length; tab_i++)
 	{ 
 		len = strlen(symtab[tab_i].str);//<--A little optimization. Figured I'd save the compiler the trouble.
+		//if(tab_i == 104)
+		//	raise(SIGTRAP);
+		hash = 0;
 		for(str_i = 0; str_i < len; str_i++)
 		{
 			/*Each letter of each symtab entry is placed into its corresponding
 			location in the parse table. The index of this location is determined by the
 			value of the character being cast into an integer and subtracted by 
 			the value needed to bring the ascii value of 'a' to 0.*/
+			temp = 0;
+			
 			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET];			
 			//I used a temporary pointer here for optimization and readability.
-			ptr.val = symtab[tab_i].str[str_i];
-			ptr.count++;
+			temp = ptr.val = symtab[tab_i].str[str_i];
+			ptr.type = CHAR;
+			
+			hash = temp ^ hash;
 			
 			/*A given character in the parse table may have multiple symtab entries pointing to it.
 			We need to collect each of these references and store them next to each other */
-			ref_i = 0;
-			while(ptr.ref[ref_i] != 0)
-				ref_i++;
-			ptr.ref[ref_i] = tab_i;//<--This reference is used to index back into the symbol table for printing at the end of the process.
-			
+						
 			parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET] = ptr;
-		}	
+		}
+		
+		ref_i = 0;
+		while(parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET].ref[ref_i] != 0 && ref_i < MAX_REF)
+			ref_i++;
+		parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET].ref[ref_i] = hash;//<--This reference is used to index back into the symbol table for printing at the end of the process.
+		
+			
 	}	
 	
 	//Not strictly necessary, but I like being able to see what the parse table looks like.
@@ -298,7 +317,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 					ref_i++;
 					local_count++;
 					iterations++;
-					puts("1111111111 Copy ref\n");
+					//puts("1111111111 Copy ref\n");
 				}
 				local_state_array[ref_i] = -1;
 				prev_state_array = local_state_array;
@@ -316,7 +335,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 					}
 					index++;
 					iterations++;
-					puts("++++++++ Copy other ref\n");
+					//puts("++++++++ Copy other ref\n");
 				}
 				local_state_array[ref_i] = -1;
 				if(local_count)
@@ -338,7 +357,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 		{
 			state_array[index] = prev_state_array[index];
 			iterations++;
-			puts("Final state_array copy.\n");
+			//puts("Final state_array copy.\n");
 			index++;
 		}
 		state_array[index] = -1;
@@ -409,6 +428,48 @@ int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRIN
 	return 0;
 }
 
+int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+{
+	//int index;	
+	//int ref_i = 0;
+	//int local_count = 0;
+	//int local_state_array[SYMTAB_SIZE];
+	int is_first_run = 0;
+	int str_i = 0;
+	
+	int parse_hash, parse_temp, str_hash, str_temp = 0;
+	
+	arr ptr;
+	
+	iterations++;
+	//stack_count++;
+
+	while(string[str_i] != '\0' && string[str_i] != '\n')
+	{
+		str_temp = 0, parse_temp = 0;
+		if(parse_temp = parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].val)
+			str_i++;
+		else
+			return 0;
+			
+		parse_hash = parse_temp ^ parse_hash;
+		str_hash = str_temp ^ str_hash;
+	}
+	//if(parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].ref[ref_i] 
+	
+	if(str_hash == parse_hash)
+		return 1;
+
+	return 0;
+}
+
+int Get_Type(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+{
+
+
+
+	return 0;
+}
 
 int main(int argc, char * argv[])
 {
@@ -428,6 +489,10 @@ int main(int argc, char * argv[])
 
 	symtab = SymTab_Init(parse_table);
 	String_Compare(buf, symtab, parse_table);
+	
+	printf("In table: %i\n", In_Table(buf, symtab, parse_table));
+	
+	printf("Type: %i\n", Get_Type(buf, symtab, parse_table));
 	
 	free(symtab);
 	

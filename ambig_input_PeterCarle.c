@@ -234,7 +234,7 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 			/*A given character in the parse table may have multiple symtab entries pointing to it.
 			We need to collect each of these references and store them next to each other */
 			ref_i = 0;
-			while(ptr.ref[ref_i] != 0)
+			while(ptr.ref[ref_i] != 0 && ref_i < MAX_REF)
 				ref_i++;
 			ptr.ref[ref_i] = tab_i;//<--This reference is used to index back into the symbol table for printing at the end of the process.
 			
