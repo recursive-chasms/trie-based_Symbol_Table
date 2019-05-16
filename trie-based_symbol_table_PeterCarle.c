@@ -7,7 +7,7 @@
 #define ASCII_TAB_SIZE 93
 #define MAX_STRING 50
 #define SYMTAB_SIZE 3200
-#define NON_CONTROL_CHAR_OFFSET 33
+#define CHAR_OFFSET 33
 #define STR_SIZE 50
 #define MAX_REF 100
 
@@ -148,8 +148,8 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 	int input;
 	int file_length = 0;
 	
-	unsigned char hash = 0;
-	unsigned char temp = 0;
+	int hash = 0;
+	int temp = 0;
 	
 	tab* symtab;
 	
@@ -219,7 +219,7 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 			parse_table[tab_i][str_i].val = 0;
 			parse_table[tab_i][str_i].type = 0;
 			for(ref_i = 0; ref_i < MAX_REF; ref_i++)
-				parse_table[tab_i][str_i].ref[ref_i] = 0;
+				parse_table[tab_i][str_i].ref[ref_i] = -1;
 		}
 	}
 	
@@ -236,27 +236,36 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 			location in the parse table. The index of this location is determined by the
 			value of the character being cast into an integer and subtracted by 
 			the value needed to bring the ascii value of 'a' to 0.*/
-			temp = 0;
 			
-			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET];			
+			//temp = 0;
+			
+			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - CHAR_OFFSET];			
 			//I used a temporary pointer here for optimization and readability.
 			temp = ptr.val = symtab[tab_i].str[str_i];
-			ptr.type = CHAR;
+			ptr.type = CHAR; //<--TODO
 			
 			hash = temp ^ hash;
-			
-			/*A given character in the parse table may have multiple symtab entries pointing to it.
-			We need to collect each of these references and store them next to each other */
 						
-			parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET] = ptr;
+			parse_table[str_i][(int)symtab[tab_i].str[str_i] - CHAR_OFFSET] = ptr;
 		}
-		
 		ref_i = 0;
-		while(parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET].ref[ref_i] != 0 && ref_i < MAX_REF)
+		while(ptr.ref[(hash + ref_i) % MAX_REF] != -1)
+		{
+			if(ptr.ref[(hash + ref_i) % MAX_REF] == hash)//<--I'm aware of the possibility of collisions here. Creating a strong hashing function is outside of the scope of this project, since I don't have much knowledge of cryptography right now. A single XOR is about as quick and easy as you can get, methinks. For a toy demonstration of trie functionality, this should suffice.
+				goto Duplicate;
+				
 			ref_i++;
-		parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET].ref[ref_i] = hash;//<--This reference is used to index back into the symbol table for printing at the end of the process.
+			if(ref_i == MAX_REF)
+			{
+				puts("ERROR: Maximum number of variables at this character terminus. Try using more variables that end on a different character...or variables with a different number of characters.\n");
+				exit(0);
+			}
+		}			
+		ptr.ref[hash % MAX_REF] = hash;
 		
-			
+Duplicate:	//(Just skip the hash entry.)
+
+		parse_table[str_i][(int)symtab[tab_i].str[str_i] - CHAR_OFFSET] = ptr;				
 	}	
 	
 	//Not strictly necessary, but I like being able to see what the parse table looks like.
@@ -305,9 +314,9 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 
 	if(string[str_i] != '\0' && string[str_i] != '\n')
 	{
-		if(parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].val)
+		if(parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
 		{	
-			ptr = parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET];
+			ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];
 			
 			if(is_first_run)
 			{	
@@ -364,7 +373,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 		return;
 	}
 			
-	parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET] = ptr;
+	parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
 	is_first_run = 0;
 	str_i++;
 		
@@ -379,7 +388,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 	return;
 } 
 
-
+/*
 int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {		
 	int state_array[SYMTAB_SIZE];
@@ -427,6 +436,7 @@ int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRIN
 
 	return 0;
 }
+*/
 
 int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
@@ -436,6 +446,7 @@ int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASC
 	//int local_state_array[SYMTAB_SIZE];
 	int is_first_run = 0;
 	int str_i = 0;
+	int ref_i = 0;
 	
 	int parse_hash, parse_temp, str_hash, str_temp = 0;
 	
@@ -447,18 +458,27 @@ int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASC
 	while(string[str_i] != '\0' && string[str_i] != '\n')
 	{
 		str_temp = 0, parse_temp = 0;
-		if(parse_temp = parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].val)
+		
+	//The declaration within the if-statement below was intentional. I probably wouldn't do this in production code.
+		if(parse_temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
 			str_i++;
 		else
 			return 0;
 			
 		parse_hash = parse_temp ^ parse_hash;
-		str_hash = str_temp ^ str_hash;
+		//str_hash = str_temp ^ str_hash;
 	}
-	//if(parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].ref[ref_i] 
+	//if(parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].ref[ref_i] 
+	if(!str_i)
+		return 0;
 	
-	if(str_hash == parse_hash)
-		return 1;
+	ref_i = 0;
+	while(ref_i < MAX_REF)
+	{
+		if(parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].ref[(parse_hash + ref_i) % MAX_REF] == parse_hash)
+			return 1;
+		ref_i++;
+	}
 
 	return 0;
 }
@@ -488,7 +508,7 @@ int main(int argc, char * argv[])
 	arr parse_table[MAX_STRING][ASCII_TAB_SIZE];
 
 	symtab = SymTab_Init(parse_table);
-	String_Compare(buf, symtab, parse_table);
+	//String_Compare(buf, symtab, parse_table);
 	
 	printf("In table: %i\n", In_Table(buf, symtab, parse_table));
 	
