@@ -261,11 +261,11 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 				exit(0);
 			}
 		}			
-		ptr.ref[hash % MAX_REF] = hash;
+		ptr.ref[(hash + ref_i) % MAX_REF] = hash;
 		
 Duplicate:	//(Just skip the hash entry.)
 
-		parse_table[str_i][(int)symtab[tab_i].str[str_i] - CHAR_OFFSET] = ptr;				
+		parse_table[str_i - 1][(int)symtab[tab_i].str[str_i - 1] - CHAR_OFFSET] = ptr;				
 	}	
 	
 	//Not strictly necessary, but I like being able to see what the parse table looks like.
@@ -447,8 +447,8 @@ int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASC
 	int is_first_run = 0;
 	int str_i = 0;
 	int ref_i = 0;
-	
-	int parse_hash, parse_temp, str_hash, str_temp = 0;
+	int hash = 0;
+	int temp = 0;
 	
 	arr ptr;
 	
@@ -457,15 +457,15 @@ int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASC
 
 	while(string[str_i] != '\0' && string[str_i] != '\n')
 	{
-		str_temp = 0, parse_temp = 0;
+		temp = 0;
 		
 	//The declaration within the if-statement below was intentional. I probably wouldn't do this in production code.
-		if(parse_temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
+		if(temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
 			str_i++;
 		else
 			return 0;
 			
-		parse_hash = parse_temp ^ parse_hash;
+		hash = temp ^ hash;
 		//str_hash = str_temp ^ str_hash;
 	}
 	//if(parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].ref[ref_i] 
@@ -475,7 +475,7 @@ int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASC
 	ref_i = 0;
 	while(ref_i < MAX_REF)
 	{
-		if(parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].ref[(parse_hash + ref_i) % MAX_REF] == parse_hash)
+		if(parse_table[str_i - 1][(int)string[str_i - 1] - CHAR_OFFSET].ref[(hash + ref_i) % MAX_REF] == hash)
 			return 1;
 		ref_i++;
 	}
