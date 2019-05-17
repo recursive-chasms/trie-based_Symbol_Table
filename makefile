@@ -13,58 +13,49 @@ ODIR=obj
 LIBS=-lfl -ly
 
 #Places header files in include/
-_DEPS = userinput.h locations.h userinventory.h input.tab.h symbol_table.h help.h
+_DEPS = toylang.tab.h p_trie.h defs.h
 DEPS = $(patsubst %, $(IDIR)/%, $(_DEPS))
 
 #Places object files in obj/
-_OBJ = userinventory.o locations.o lex.yy.o input.tab.o symbol_table.o help.o
+_OBJ = lex.yy.o p_trie.o toylang.tab.o
 OBJ = $(patsubst %,$(ODIR)/%, $(_OBJ))
 
 #Final compilation: compiles main() and links everything together. 
-game: $(OBJ) main.c $(DEPS)
+comp: $(OBJ) $(DEPS)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 #Runs YACC to generate parse table for user input
-input.tab.c: input.y
-	bison -dv input.y
-	mv input.tab.h $(IDIR)
+toylang.tab.c: toylang.y include/defs.h
+	bison -dv toylang.y
+	mv toylang.tab.h $(IDIR)
 
-./include/input.tab.h: input.y
-	bison -dv input.y
-	mv input.tab.h $(IDIR)
+include/toylang.tab.h: toylang.y
+	bison -dv toylang.y
+	mv toylang.tab.h $(IDIR)
 
 #Runs Lex to generate lexical scanner
-lex.yy.c: input.l ./include/input.tab.h 
-	flex  input.l
+lex.yy.c: toylang.l include/toylang.tab.h
+	flex  toylang.l
 
 #5 commands to compile individual object components before they can be integrated with main()
 
-$(ODIR)/lex.yy.o : lex.yy.c ./include/input.tab.h ./include/userinput.h
+$(ODIR)/lex.yy.o : lex.yy.c include/toylang.tab.h
 	$(CC) -c -o $@ lex.yy.c $(CFLAGS)
 
-$(ODIR)/input.tab.o : input.tab.c ./include/userinput.h
-	$(CC) -c -o $@ input.tab.c $(CFLAGS)
+$(ODIR)/toylang.tab.o : toylang.tab.c include/defs.h
+	$(CC) -c -o $@ toylang.tab.c $(CFLAGS)
 
-$(ODIR)/userinventory.o : userinventory.c ./include/userinput.h ./include/locations.h ./include/userinventory.h
-	$(CC) -c -o $@ userinventory.c $(CFLAGS)
-
-$(ODIR)/locations.o : locations.c ./include/userinput.h ./include/locations.h ./include/userinventory.h
-	$(CC) -c -o $@ locations.c $(CFLAGS)
-
-$(ODIR)/symbol_table.o : symbol_table.c ./include/symbol_table.h ./include/userinput.h
-	$(CC) -c -o $@ symbol_table.c $(CFLAGS)
-
-$(ODIR)/help.o : help.c ./include/help.h ./include/userinput.h
-	$(CC) -c -o $@ help.c $(CFLAGS)
+$(ODIR)/p_trie.o : p_trie.c include/p_trie.h include/defs.h
+	$(CC) -c -o $@ p_trie.c $(CFLAGS)
 
 .PHONY: clean
 
 clean:
 	rm -f lex.yy.c 
-	rm -f input.output
-	rm -f include/input.tab.h
-	rm -f input.tab.c
+	rm -f toylang.output
+	rm -f include/toylang.tab.h
+	rm -f toylang.tab.c
 	rm obj/*.o
-	rm game
+	rm comp
 
 
