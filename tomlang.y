@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 //#include "symtab.c"
 #include "include/p_trie.h"
 
@@ -19,6 +20,10 @@ typedef struct
 }langstruct;
 
 #define YYSTYPE langstruct
+
+tab* symtab;
+	
+arr parse_table[MAX_STRING][ASCII_TAB_SIZE];
 
 int yylex();
 void yyerror(char *s);
@@ -382,9 +387,17 @@ newline		:
 
 void main()
 {
-	tab* symtab;
+	//tab* symtab;
+	
+	//arr parse_table[MAX_STRING][ASCII_TAB_SIZE];
+	
+	symtab = SymTab_Init();
 
- yyparse();
+ 	yyparse();
+ 	
+ 	free(symtab);
+ 	
+ 	return;
 }
 
 

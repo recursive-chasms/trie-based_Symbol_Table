@@ -115,7 +115,7 @@ int gettype( char *s)
 
 //Parse table is a 2D array which is as long as the longest string and as wide as the lower-case ASCII_TAB_SIZE.
 
-tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+tab* SymTab_Init()
 {
 	int index;
 	int tab_i;
