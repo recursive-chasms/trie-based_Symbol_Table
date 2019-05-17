@@ -3,13 +3,7 @@
 #include <string.h>
 #include <signal.h>
 
-#define SAFE_STACK 20000
-#define ASCII_TAB_SIZE 93
-#define MAX_STRING 50
-#define SYMTAB_SIZE 3200
-#define CHAR_OFFSET 33
-#define STR_SIZE 50
-#define MAX_REF 100
+#include "include/p_trie.h"
 
 int stack_count = 0;
 int iterations = 0;
@@ -114,25 +108,10 @@ int gettype( char *s)
 
 */
 
-#define UNTYPED -1
-#define INT 10
-#define CHAR 20
 
 
-struct tab
-{
-	char str[MAX_REF];
-	int type;
-};
-typedef struct tab tab;
 
-struct arr
-{
-	int val;
-	int type;
-	int ref[MAX_REF];
-};
-typedef struct arr arr;
+
 
 //Parse table is a 2D array which is as long as the longest string and as wide as the lower-case ASCII_TAB_SIZE.
 
@@ -296,149 +275,13 @@ The code should be made to work on its own before attempted integration
 with the Lex and YACC files for A8 (from Language Processing). 
 */
 
-/*
-void Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
-int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+int Add_Symbol(char string[STR_SIZE], int type, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
-	/*Uses a state array to track which sets of characters were the final ones to match on the string.
-	If necessary, this is used to indicate potential valid inputs to the user among the 
-	potentially-matching symbols in the symbol table.
-	
-	int index;	
-	int ref_i = 0;
-	int local_count = 0;
-	int local_state_array[SYMTAB_SIZE];
-	arr ptr;
-	
-	iterations++;
-	stack_count++;
 
-	if(string[str_i] != '\0' && string[str_i] != '\n')
-	{
-		if(parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
-		{	
-			ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];
-			
-			if(is_first_run)
-			{	
-				while(ptr.ref[ref_i] != 0 && ref_i < MAX_REF)
-				{	
-					local_state_array[ref_i] = ptr.ref[ref_i];
-					ref_i++;
-					local_count++;
-					iterations++;
-					//puts("1111111111 Copy ref\n");
-				}
-				local_state_array[ref_i] = -1;
-				prev_state_array = local_state_array;
-			}
-			else
-			{	
-				index = 0;
-				while(prev_state_array[index] != -1)
-				{
-					if(symtab[prev_state_array[index]].str[str_i] == string[str_i])
-					{
-						local_state_array[ref_i] = prev_state_array[index];
-						ref_i++;
-						local_count++;
-					}
-					index++;
-					iterations++;
-					//puts("++++++++ Copy other ref\n");
-				}
-				local_state_array[ref_i] = -1;
-				if(local_count)
-					prev_state_array = local_state_array;
-			}
-		}
-	}
 
-	if(!local_count && is_first_run)
-	{
-		state_array[0] = -1;
-		return;
-	}
-
-	if(!local_count)
-	{
-		index = 0;
-		while(prev_state_array[index] != -1)
-		{
-			state_array[index] = prev_state_array[index];
-			iterations++;
-			//puts("Final state_array copy.\n");
-			index++;
-		}
-		state_array[index] = -1;
-		return;
-	}
-			
-	parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
-	is_first_run = 0;
-	str_i++;
-		
-	if(stack_count < SAFE_STACK)
-		Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run, symtab, parse_table);
-	else
-	{
-		puts("ERROR: Recursion potentially out of control. Exiting.\n");
-		exit(1);
-	}
-		
-	return;
-} 
-*/
-
-/*
-int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
-{		
-	int state_array[SYMTAB_SIZE];
 	
-	int index;
-	int match_count = 0;
-	
-	Sym_Compare(string, state_array, NULL, 0, 1, symtab, parse_table);
-	
-	index = 0;
-	while(state_array[index] != -1)
-	{
-		if(state_array[index])
-			match_count++;
-		index++;
-	}
-	
-	if(match_count == 0)	
-		printf("HELP\n");
-	else if(match_count == 1)
-	{
-		printf("One match.\n");
-		index = 0;
-		while(state_array[index] != -1)
-		{
-			if(state_array[index])
-				printf(" - %s\n", symtab[state_array[index]].str);
-			index++;
-		}
-	}
-	else
-	{
-		printf("Ambiguous input. Possible options:\n");
-		printf("match_count: %i\n", match_count);
-		index = 0;
-		while(state_array[index] != -1)
-		{	
-			if(state_array[index])
-				printf(" - %s\n", symtab[state_array[index]].str);
-			index++;
-		}	
-	}
-
-	printf("ITERATIONS: %i\n", iterations);
-
-	return 0;
 }
-*/
+
 
 int Get_Type(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
