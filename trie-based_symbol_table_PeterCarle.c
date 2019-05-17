@@ -296,12 +296,13 @@ The code should be made to work on its own before attempted integration
 with the Lex and YACC files for A8 (from Language Processing). 
 */
 
+/*
 void Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
 int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
 	/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
-	potentially-matching symbols in the symbol table.*/
+	potentially-matching symbols in the symbol table.
 	
 	int index;	
 	int ref_i = 0;
@@ -387,6 +388,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 		
 	return;
 } 
+*/
 
 /*
 int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
@@ -438,7 +440,7 @@ int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRIN
 }
 */
 
-int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+int Get_Type(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
 	//int index;	
 	//int ref_i = 0;
@@ -476,17 +478,9 @@ int In_Table(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASC
 	while(ref_i < MAX_REF)
 	{
 		if(parse_table[str_i - 1][(int)string[str_i - 1] - CHAR_OFFSET].ref[(hash + ref_i) % MAX_REF] == hash)
-			return 1;
+			return parse_table[str_i - 1][(int)string[str_i - 1] - CHAR_OFFSET].type;
 		ref_i++;
 	}
-
-	return 0;
-}
-
-int Get_Type(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
-{
-
-
 
 	return 0;
 }
@@ -510,7 +504,7 @@ int main(int argc, char * argv[])
 	symtab = SymTab_Init(parse_table);
 	//String_Compare(buf, symtab, parse_table);
 	
-	printf("In table: %i\n", In_Table(buf, symtab, parse_table));
+	//printf("In table: %i\n", In_Table(buf, symtab, parse_table));
 	
 	printf("Type: %i\n", Get_Type(buf, symtab, parse_table));
 	
