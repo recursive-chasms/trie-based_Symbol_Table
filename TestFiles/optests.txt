@@ -1,0 +1,5 @@
+	vari i_NewVar30;	vari y = 4 % (((5 + 2) -2)); /*I've enjoyed the class, Tom. Wish I had more time to experiment with this stuff.*/	set i_NewVar30 to 3 * y
+	printi i_NewVar30;
+	vars s_BigString = "Interleaved declaration."
+	printsv s_BigString
+

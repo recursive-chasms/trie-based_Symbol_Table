@@ -1,0 +1,4 @@
+vars G
+G = /*Rarity and Fluttershy*/ "consciousness" ;
+printsv G
+

@@ -1,0 +1,11 @@
+   vari x
+   vari y
+   vars g
+   
+   y = 11
+   set x to 3 * y
+   printi x
+   
+   g = "hello world"
+   printsh g
+   printsv g

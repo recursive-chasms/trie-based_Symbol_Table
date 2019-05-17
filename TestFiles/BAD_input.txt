@@ -1,0 +1,15 @@
+   vari x   
+   vari y
+   vars g = "Sample string"
+
+	vari x
+
+	vari N = "Type error"   
+
+	New_Var = 11
+
+	y = x + g
+
+	printi g
+
+	printsv None
