@@ -67,7 +67,7 @@ void Add_Symbol(char string[MAX_REF], int type)
 
 	for(str_i = 0; str_i < len; str_i++)
 	{
-		iterations++;
+		//iterations++;
 		/*Each letter of each symtab entry is placed into its corresponding
 		location in the parse table. The index of this location is determined by 
 		the value of the character being cast into an integer and subtracted by 
@@ -82,7 +82,7 @@ void Add_Symbol(char string[MAX_REF], int type)
 	ref_i = 0;
 	while(ptr.ref[(hash + ref_i) % MAX_REF] != -1)
 	{
-		iterations++;
+		//iterations++;
 		/*I'm aware of the possibility of collisions here. Creating a strong 
 		hashing function is outside of the scope of this project, since I 
 		don't have much knowledge of cryptography right now. A single XOR 
@@ -161,7 +161,11 @@ int main(int argc, char * argv[])
 {
 	char buf[MAX_REF];
 	int index;
-
+	int file_length = 0;
+	int len;
+	int str_i;
+	int input;
+	
 	if(argv[1] == NULL)
 	{
 		puts("Please enter a string of characters to test the algorithm.\n");
@@ -170,18 +174,80 @@ int main(int argc, char * argv[])
 
 	strncpy(buf, argv[1], MAX_REF);
 
-	tab* symtab;
+	iterations = 0;
+	//tab* symtab;
 	
-	//arr parse_table[MAX_REF][ASCII_TAB_SIZE];
+	arr ptr;
+	FILE* fptr;
+	
+	fptr = fopen("weird_input.txt", "r");
+	if(fptr == NULL)
+	{
+		puts("fopen() failed. Exiting.\n");
+		exit(1);
+	}
+	while(1)
+	{
+		input = fgetc(fptr);
+		if(input == '\n')
+			file_length++;
+		else if(input == EOF)
+			break;
+	}
+
+	
+	fptr = freopen("weird_input.txt", "r", fptr);
+	if(fptr == NULL)
+	{
+		puts("freopen() failed. Exiting.\n");
+		exit(1);
+	}
+	
+	/*
+	symtab = malloc(file_length * sizeof(tab));
+	if(symtab == NULL)
+	{
+		puts("malloc() failed. Exiting.\n");
+		exit(1);
+	}
+	*/
+
+	index = 0;
+	while(index < file_length && index < SYMTAB_SIZE)
+	{
+		str_i = 0;
+		
+		while(1)
+		{
+			if(str_i >= MAX_REF)
+				break;
+			
+			input = fgetc(fptr);
+		
+			if(input != '\n' && input != '\0')
+				symtab[index].str[str_i] = input;
+			else
+			{
+				symtab[index].str[str_i] = '\0';
+				symtab[index].type = 1;
+				break;
+			}			
+			str_i++;
+		}		
+		index++;
+	}
+	//printf("first string: %s\n", symtab[1].sname);
 
 	ParseTab_Init(parse_table);
 	
 	for(index = 0; index < file_length; index++)
 		Add_Symbol(symtab[index].str, CHAR);
 	
-	printf("Type: %i\n", Get_Type(buf, symtab, parse_table));
+	printf("Type: %i\n", Get_Type(buf));
 	
-	free(symtab);
+	printf("ITERATIONS: %i\n", iterations);
+	
+	//free(symtab);
 	
 return 0;
 }
