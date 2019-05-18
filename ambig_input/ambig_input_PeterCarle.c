@@ -18,13 +18,23 @@ int iterations = 0;
 //Independently-created trie-based symbol table
 
 /*
+TL;DR: I came up with a trie data structure on my own without knowing that's
+what it was called. It came primarily from my high-level understanding 
+of hash tables and parse tables. I created the structure and source code for 
+this project independently of any specific assignment; it was never taught
+in class. The structure itself has theoretically constant look-up time.
+
+---
+
+Backstory:
+
 This personal research project grew largely out of Professor Tom Halverson's 
 symbol table that he presented in his Language Processing class.
 He was very self-deprecating about it, for the symtab code was simple and
-succinct at the expense of being computationally efficient. Pragmatism prevailed
-in that class, for his emphasis was on well-formed language constructs, rather
-than the minutia of the supporting code-base. He didn't want us underclassmen 
-to get side-tracked too much.
+succinct at the expense of being computationally inefficient for large, 
+unordered inputs. Pragmatism prevailed in that class, for his emphasis was on 
+well-formed language constructs, rather than the minutia of the supporting 
+code-base. He didn't want us underclassmen to get side-tracked too much.
 
 In any case, his symbol table got me thinking about how I would go about doing 
 it if I had the time. I used my high-level understanding of hash tables (which
@@ -33,7 +43,7 @@ hash tables that were indexed via input at each consecutive character from
 the input string. 
 
 The theoretical advantage of this would be *constant* look-up time for a given
-string--a performance theoretically superior to that of either a complex hash 
+string--a performance superior to that of either a complex hash 
 table or a binary search tree.
 
 The idea for the algorithm lay dormant for a couple of months until the 
@@ -57,20 +67,21 @@ radix tree or prefix tree)--a deterministic finite automaton that was apparently
 described by René de la Briandais in 1959. I was sixty years late to the party.
 
 Still, I came up with the general concept and the source code for the trie 
-independently within my Computer Science minor, using only my conceptual 
+independently within my Computer Science minor, using mainly my conceptual 
 understanding of hash tables and parse tables. (I had spent some time earlier 
 in the semester looking at the source code for Lex and YACC parse tables as 
 well; it's likely my Language Processing class subconsciously affected this creation.) 
 
 For what ambig_input_PeterCarle is, I'm proud of it, though the current limit
 it faces is the number of references a single character position in the trie
-can take. It doesn't seem to like going much above 256 or so. This may simply
-be because of architectural limitations. The parse table is a very big structure
-to have on the stack. 
- Also, this probably goes without saying, but it's not the HAT-trie algorithm; 
-it doesn't take CPU caching into account. 
-(The binary radix trie is  something I would like to study in further depth in 
-the future.) 
+can take. It doesn't seem to like going much above 100. I'm too burned out on it
+to investigate the exact cause of the segfaults on this front. Perhaps the 
+structure's just too large to be kept on the stack...?
+
+On another note, although this project doesn't take CPU caching into account, 
+the binary radix trie is something I might like to study in further depth in 
+the future. Research on this front introduced me to the subject, which seems
+very germane to performance on modern systems.
 
 These things aside, I did write it with time-based performance considerations
 in mind at every turn, and I included debug output to corroborate this.
@@ -89,29 +100,6 @@ thinking and discovery that counts in this case.
 
 § Peter Carle §
 May 13, 2019
-
-*/
-
-/*
-struct stelem
-{
- char sname[512];
- int  stype; 
-};
-typedef struct stelem entry;
-
-entry symtab[100];
-int nsym;
-
-void addtab( char *s)
-
-void showtab()
-
-int intab( char *s)
-
-int addtype( char *s, int t)
-
-int gettype( char *s)
 
 */
 
