@@ -4,6 +4,14 @@
 #include "defs.h"
 
 
+/*
+Original symtab code by my Language Processing professor.
+
+See comments on the background to this project; he never meant
+to draw attention to this symtab code as a paragon of efficiency. It is very concise and easy to read, though.
+*/
+
+
 struct stelem
 {
  char sname[100];
@@ -128,15 +136,6 @@ int main(void)
 		puts("freopen() failed. Exiting.\n");
 		exit(1);
 	}
-	
-	/*
-	symtab = malloc(file_length * sizeof(tab));
-	if(symtab == NULL)
-	{
-		puts("malloc() failed. Exiting.\n");
-		exit(1);
-	}
-	*/
 
 	index = 0;
 	while(index < file_length && index < SYMTAB_SIZE)
@@ -162,15 +161,12 @@ int main(void)
 		}		
 		index++;
 	}
-	//printf("first string: %s\n", symtab[1].sname);
 
 
 	input = gettype("Stoke-upon-Trent");
 	printf("In table: %i\n",  input);
 
 	printf("Iterations: %i\n", iterations);
-
-	//free(symtab);
 
 	return 0;
 }

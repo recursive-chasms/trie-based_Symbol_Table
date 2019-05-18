@@ -152,32 +152,4 @@ int Get_Type(char string[MAX_REF])
 	return 0;
 }
 
-/*
-int main(int argc, char * argv[])
-{
-	char buf[MAX_REF];
 
-	if(argv[1] == NULL)
-	{
-		puts("Please enter a string of characters to test the algorithm.\n");
-		exit(0);
-	}
-
-	strncpy(buf, argv[1], MAX_REF);
-
-	tab* symtab;
-	
-	arr parse_table[MAX_REF][ASCII_TAB_SIZE];
-
-	symtab = SymTab_Init(parse_table);
-	//String_Compare(buf, symtab, parse_table);
-	
-	//printf("In table: %i\n", In_Table(buf, symtab, parse_table));
-	
-	printf("Type: %i\n", Get_Type(buf, symtab, parse_table));
-	
-	free(symtab);
-	
-return 0;
-}
-*/

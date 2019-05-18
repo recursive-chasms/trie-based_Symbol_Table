@@ -9,21 +9,23 @@
 //Independently-invented trie-based symbol table
 
 /*
-TL;DR: I came up with a trie data structure on my own without knowing that's
-what it was called. It came primarily from my high-level understanding 
-of hash tables and parse tables. I created the structure and source code for 
-these projects independently of any specific assignment; it was never taught
-in class. The structure itself has theoretically constant look-up time.
+This file can be compiled on its own without the makefile. Include a list of
+symbols called weird_input.txt in the directory, and enter the term to be
+searched for on the command line. If the string is present, it'll print its 
+type (10 for CHAR in this case) alongside the number of iterations the 
+algorithm took. 
 
-The extended backstory behind this is available in the comments in the older
-project titled ambig_input_PeterCarle.c. 
+If it's not found, the type will be 0, and the number of iterations will be 
+a little over 100, since the algorithm checks a reference list of that length
+in case of possible hash collisions. This list could probably be shortened 
+considerably, since it exists only for the edge case of multiple strings 
+of the same length that end on the same character (e.g., cat, bat, dat, etc.).
+Hopefully most source files would include more varied variables.
 
-This successor project is designed to use trie functionality to provide
-a reasonably well-performing symbol table for a compiler. 
-
-I integrated it with the Lex and YACC files from a previous Language Processing
-project to test it.
-
+About weird_input.txt: It's a fragment of a very large dictionary file I 
+downloaded. While it may not be particularly representative of a normal list
+of variables (since all the words start with "st"), it is good for comparing
+the efficiency of the trie code with the linear symtab.c.
 */
 
 //Parse table is a 2D array which is as long as the longest string and as wide as the lower-case ASCII_TAB_SIZE.

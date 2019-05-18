@@ -1,0 +1,27 @@
+Lex/YACC Assignment
+
+Source: our language
+Target: working program in existing language
+
+
+Choice 2:  C
+
+
+---------------------------------------------------------------------------
+Source language description::
+
+ToC
+ Input format:
+ 
+   vari x
+   vari y
+   vars g
+
+   y = 11
+   set x to 3 * y
+   printi x
+
+   g = "hello world"
+   printsh g
+   printsv g
+
