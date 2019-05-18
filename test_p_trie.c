@@ -1,0 +1,188 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+
+#include "include/defs.h"
+
+//PETER ERNEST CARLE
+//Independently-invented trie-based symbol table
+
+/*
+TL;DR: I came up with a trie data structure on my own without knowing that's
+what it was called. It came primarily from my high-level understanding 
+of hash tables and parse tables. I created the structure and source code for 
+these projects independently of any specific assignment; it was never taught
+in class. The structure itself has theoretically constant look-up time.
+
+The extended backstory behind this is available in the comments in the older
+project titled ambig_input_PeterCarle.c. 
+
+This successor project is designed to use trie functionality to provide
+a reasonably well-performing symbol table for a compiler. 
+
+I integrated it with the Lex and YACC files from a previous Language Processing
+project to test it.
+
+*/
+
+//Parse table is a 2D array which is as long as the longest string and as wide as the lower-case ASCII_TAB_SIZE.
+
+//TODO
+tab symtab[SYMTAB_SIZE];
+
+
+void ParseTab_Init()
+{
+	int index;
+	int tab_i;
+	int str_i;
+	int ref_i;
+
+	//Initializes everything to zero.
+	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
+	{
+		for(str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
+		{
+			parse_table[tab_i][str_i].val = 0;
+			for(ref_i = 0; ref_i < MAX_STRING; ref_i++)
+				parse_table[tab_i][str_i].type[ref_i] = UNTYPED;
+			for(ref_i = 0; ref_i < MAX_STRING; ref_i++)
+				parse_table[tab_i][str_i].ref[ref_i] = -1;
+		}
+	}
+	return;
+}
+
+void Add_Symbol(char string[MAX_REF], int type)
+{ 
+	int hash = 0;
+	int temp = 0;
+	int str_i = 0;
+	int ref_i = 0;
+	int len;
+	arr ptr;
+
+	len = strlen(string);//<--A little optimization. Figured I'd save the compiler the trouble.
+
+	for(str_i = 0; str_i < len; str_i++)
+	{
+		iterations++;
+		/*Each letter of each symtab entry is placed into its corresponding
+		location in the parse table. The index of this location is determined by 
+		the value of the character being cast into an integer and subtracted by 
+		the value needed to bring the ascii value of 'a' to 0.*/		
+		ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];			
+		//I used a temporary pointer here for optimization and readability.
+		
+		temp = ptr.val = string[str_i];		
+		hash = temp ^ hash;					
+		parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
+	}
+	ref_i = 0;
+	while(ptr.ref[(hash + ref_i) % MAX_REF] != -1)
+	{
+		iterations++;
+		/*I'm aware of the possibility of collisions here. Creating a strong 
+		hashing function is outside of the scope of this project, since I 
+		don't have much knowledge of cryptography right now. A single XOR 
+		is about as quick and easy as you can get, methinks. For a toy 
+		demonstration of trie functionality, this should suffice.*/
+		
+		if(ptr.ref[(hash + ref_i) % MAX_REF] == hash)
+			goto Duplicate;
+				
+		ref_i++;
+		if(ref_i == MAX_REF)
+		{
+			puts("ERROR: Maximum number of variables at this character terminus. Try using more variables that end on a different character...or variables with a different number of characters.\n");
+				exit(0);
+		}
+	}
+	temp = (hash + ref_i) % MAX_REF;		
+	ptr.ref[temp] = hash;
+	ptr.type[temp] = type;
+		
+Duplicate:	//(Just skip the hash entry.)
+		
+	str_i--;
+	parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;				
+		
+	return;
+}
+
+
+int Get_Type(char string[MAX_REF])
+{
+	int is_first_run = 0;
+	int str_i = 0;
+	int ref_i = 0;
+	int hash = 0;
+	int temp = 0;
+	
+	arr ptr;
+	
+	iterations++;
+	stack_count++;
+
+	while(string[str_i] != '\0' && string[str_i] != '\n')
+	{
+		temp = 0;
+		iterations++;
+	//The declaration within the if-statement below was intentional. I probably wouldn't do this in production code.
+		if(temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
+			str_i++;
+		else
+			return 0;
+			
+		hash = temp ^ hash;
+	}
+	if(!str_i)
+		return 0;
+	
+	str_i--;
+	ref_i = 0;
+	while(ref_i < MAX_REF)
+	{
+		iterations++;
+		ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];
+		temp = (hash + ref_i) % MAX_REF;
+		if(ptr.ref[temp] == hash)
+			return ptr.type[temp];
+		ref_i++;
+		parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
+	}
+
+	return 0;
+}
+
+
+int main(int argc, char * argv[])
+{
+	char buf[MAX_REF];
+	int index;
+
+	if(argv[1] == NULL)
+	{
+		puts("Please enter a string of characters to test the algorithm.\n");
+		exit(0);
+	}
+
+	strncpy(buf, argv[1], MAX_REF);
+
+	tab* symtab;
+	
+	//arr parse_table[MAX_REF][ASCII_TAB_SIZE];
+
+	ParseTab_Init(parse_table);
+	
+	for(index = 0; index < file_length; index++)
+		Add_Symbol(symtab[index].str, CHAR);
+	
+	printf("Type: %i\n", Get_Type(buf, symtab, parse_table));
+	
+	free(symtab);
+	
+return 0;
+}
+
