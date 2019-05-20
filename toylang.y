@@ -382,7 +382,7 @@ void main()
 
  	yyparse();
  	
- 	printf("ITERATIONS: %i\n", iterations);
+ 	//printf("ITERATIONS: %i\n", iterations);
  	
  	return;
 }
