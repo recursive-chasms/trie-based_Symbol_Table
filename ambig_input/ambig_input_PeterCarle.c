@@ -24,7 +24,7 @@ TL;DR: I came up with a trie data structure on my own without knowing that's wha
 
 Backstory:
 
-This personal research project grew largely out of Professor Tom Halverson's symbol table that he presented in his Language Processing class. He was very self-deprecating about it, for the symtab code was simple and succinct at the expense of being computationally inefficient for large, unordered inputs. Pragmatism prevailed in that class, for his emphasis was on well-formed language constructs, rather than the minutia of the supporting code-base. He didn't want us underclassmen to get side-tracked too much.
+This personal research project grew largely out of a symbol table presented by my Language Processing professor for that class. He was very self-deprecating about it, for the symtab code was simple and succinct at the expense of being computationally inefficient for large, unordered inputs. Pragmatism prevailed in that class, for his emphasis was on well-formed language constructs, rather than the minutia of the supporting code-base. He didn't want us underclassmen to get side-tracked too much.
 
 In any case, his symbol table got me thinking about how I would go about doing it if I had the time. I used my high-level understanding of hash tables (which I had never implemented in code) and envisioned a series of single-character hash tables that were indexed via input at each consecutive character from the input string. 
 
