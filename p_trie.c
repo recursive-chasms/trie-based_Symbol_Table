@@ -155,7 +155,7 @@ Get_Type(char string[MAX_REF])
 		temp = 0;
 		iterations++;
 		
-		temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val
+		temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val;
 		if (temp) str_i++;
 		else return 0;
 			
@@ -174,8 +174,7 @@ Get_Type(char string[MAX_REF])
 		iterations++;
 		ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];
 		temp = (hash + ref_i) % MAX_REF;
-		if (ptr.ref[temp] == hash)
-			return ptr.type[temp];
+		if (ptr.ref[temp] == hash) return ptr.type[temp];
 		ref_i++;
 		parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
 	}

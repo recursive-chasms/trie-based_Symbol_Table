@@ -1,19 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-
-#define SAFE_STACK 20000
-#define ASCII_TAB_SIZE 93
-#define MAX_STRING 50
-#define SYMTAB_SIZE 3200
-#define NON_CONTROL_CHAR_OFFSET 33
-#define STR_SIZE 50
-#define MAX_REF 256
-
-int stack_count = 0;
-int iterations = 0;
-
 //PETER ERNEST CARLE
 //Independently-created trie-based symbol table
 
@@ -55,6 +39,52 @@ May 13, 2019
 
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+
+
+enum constants
+{
+/*Prevents overflows for recursive calls. I used a conservative
+value.*/
+	SAFE_STACK = 20000,
+
+/*The range of ASCII characters we're checking for
+is 93 wide. We're ignoring the first 33 control characters.
+This is the length of one dimension of the 2D array that 
+comprises the central parse table*/
+ 	ASCII_TAB_SIZE = 93,
+
+/*The maximum length of a string stored in the parse table. 
+This is the parse table's other dimension.*/
+ 	MAX_STRING = 50,
+
+/*The length of the symbol table should be close to the
+size of the input dictionary. Used by test_p_trie.c.*/
+	SYMTAB_SIZE = 3200,
+
+/*Ignoring the first 33 control characters.*/
+ 	NON_CONTROL_CHAR_OFFSET = 33,
+
+/*The size of the character buffer.*/
+ 	STR_SIZE = 50,
+
+/*The maximum number of references associated with a particular
+character or symbol.*/
+ 	MAX_REF = 256
+};
+
+/*A guard against uncontrolled recursion.*/
+int stack_count = 0;
+
+/*I placed this counter at key points in the program to 
+give some indication of the time complexity of the operations
+in question.*/
+int iterations = 0;
+
+/*An entry in the symbol table.*/
 struct tab
 {
 	char str[MAX_REF];
@@ -62,6 +92,7 @@ struct tab
 };
 typedef struct tab tab;
 
+/*A dimension to the parse table.*/
 struct arr
 {
 	int val;
@@ -70,68 +101,57 @@ struct arr
 };
 typedef struct arr arr;
 
-//Parse table is a 2D array which is as long as the longest string and as wide as the lower-case ASCII_TAB_SIZE.
-
-tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+/*Populates the symbol table and initializes the parse table to zero.*/
+tab* 
+SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {
-	unsigned long long index;
-	unsigned long long tab_i;
-	unsigned long long str_i;
-	unsigned long long ref_i;
-
-	int len;
-	int count;
-	int input;
+	int index, tab_i, str_i, ref_i, len, count, input;	
 	int file_length = 0;
 	
-	tab* symtab;
-	
 	arr ptr;
-	FILE* fptr;
+	tab* symtab = NULL;		
+	FILE* fptr = NULL;
 	char buf[MAX_REF];
 	
 	fptr = fopen("weird_input.txt", "r");
-	if(fptr == NULL)
+	if (!fptr)
 	{
 		puts("fopen() failed. Exiting.\n");
 		exit(1);
 	}
-	while(1)
+	while (1)
 	{
 		input = fgetc(fptr);
-		if(input == '\n')
-			file_length++;
-		else if(input == EOF)
-			break;
+		if (input == '\n') file_length++;
+		else if (input == EOF) break;
 	}
 	
 	fptr = freopen("weird_input.txt", "r", fptr);
-	if(fptr == NULL)
+	if (!fptr)
 	{
 		puts("freopen() failed. Exiting.\n");
 		exit(1);
 	}
 	
 	symtab = malloc(file_length * sizeof(tab));
-	if(symtab == NULL)
+	if (!symtab)
 	{
 		puts("malloc() failed. Exiting.\n");
 		exit(1);
 	}
 
 	index = 0;
-	while(index < file_length && index < SYMTAB_SIZE)
+	while (index < file_length && index < SYMTAB_SIZE)
 	{
 		str_i = 0;
 		
-		while(1)
+		while (1)
 		{
-			if(str_i >= MAX_REF)
-				break;
+			if (str_i >= MAX_REF) break;
 			
 			input = fgetc(fptr);
 		
-			if(input != '\n' && input != '\0')
+			if (input != '\n' && input != '\0')
 				symtab[index].str[str_i] = input;
 			else
 			{
@@ -144,37 +164,35 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 	}
 	printf("first string: %s\n", symtab[1].str);
 
-	//Initializes everything to zero.
-	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
+	for (tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
-		for(str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
+		for (str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
 		{
 			parse_table[tab_i][str_i].val = 0;
 			parse_table[tab_i][str_i].count = 0;
-			for(ref_i = 0; ref_i < MAX_REF; ref_i++)
+			for (ref_i = 0; ref_i < MAX_REF; ref_i++)
 				parse_table[tab_i][str_i].ref[ref_i] = 0;
 		}
 	}
 	
 	//Populates the parse table.
-	for(tab_i = 0; tab_i < file_length; tab_i++)
+	for (tab_i = 0; tab_i < file_length; tab_i++)
 	{ 
-		len = strlen(symtab[tab_i].str);//<--A little optimization. Figured I'd save the compiler the trouble.
-		for(str_i = 0; str_i < len; str_i++)
+		len = strlen(symtab[tab_i].str);
+		for (str_i = 0; str_i < len; str_i++)
 		{
 			/*Each letter of each symtab entry is placed into its corresponding
 			location in the parse table. The index of this location is determined by the
 			value of the character being cast into an integer and subtracted by 
 			the value needed to bring the ascii value of 'a' to 0.*/
 			ptr = parse_table[str_i][(int)symtab[tab_i].str[str_i] - NON_CONTROL_CHAR_OFFSET];			
-			//I used a temporary pointer here for optimization and readability.
 			ptr.val = symtab[tab_i].str[str_i];
 			ptr.count++;
 			
 			/*A given character in the parse table may have multiple symtab entries pointing to it.
 			We need to collect each of these references and store them next to each other */
 			ref_i = 0;
-			while(ptr.ref[ref_i] != 0 && ref_i < MAX_REF)
+			while (ptr.ref[ref_i] != 0 && ref_i < MAX_REF)
 				ref_i++;
 			ptr.ref[ref_i] = tab_i;//<--This reference is used to index back into the symbol table for printing at the end of the process.
 			
@@ -182,29 +200,31 @@ tab* SymTab_Init(arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 		}	
 	}	
 	
-	//Not strictly necessary, but I like being able to see what the parse table looks like.
+	/*Not strictly necessary, but I like being able to see what the parse table looks like.*/
 	puts("PARSE TABLE:\n");
-	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
+	for (tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
-		for(str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
+		for (str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
 			printf("%c ", parse_table[tab_i][str_i].val);
 		putchar('\n');
 	}
 	
-	fclose(fptr);
+	if (fptr) fclose(fptr);
 	
 	return symtab;
 }
 
-void Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE], int prev_state_array[SYMTAB_SIZE],\
-int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
-{
-	/*Uses a state array to track which sets of characters were the final ones to match on the string.
+
+/*Uses a state array to track which sets of characters were the final ones to match on the string.
 	If necessary, this is used to indicate potential valid inputs to the user among the 
 	potentially-matching symbols in the symbol table.*/
-	
-	unsigned long long index;	
-	unsigned long long ref_i = 0;
+void 
+Sym_Compare(char string[STR_SIZE], int state_array[SYMTAB_SIZE],
+				int prev_state_array[SYMTAB_SIZE], int str_i, int is_first_run,
+				tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+{	
+	int index;	
+	int ref_i = 0;
 	int local_count = 0;
 	int local_state_array[SYMTAB_SIZE];
 	arr ptr;
@@ -212,15 +232,15 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 	iterations++;
 	stack_count++;
 
-	if(string[str_i] != '\0' && string[str_i] != '\n')
+	if (string[str_i] != '\0' && string[str_i] != '\n')
 	{
-		if(parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].val)
+		if (parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET].val)
 		{	
 			ptr = parse_table[str_i][(int)string[str_i] - NON_CONTROL_CHAR_OFFSET];
 			
-			if(is_first_run)
+			if (is_first_run)
 			{	
-				while(ptr.ref[ref_i] != 0 && ref_i < MAX_REF)
+				while (ptr.ref[ref_i] != 0 && ref_i < MAX_REF)
 				{	
 					local_state_array[ref_i] = ptr.ref[ref_i];
 					ref_i++;
@@ -234,9 +254,9 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 			else
 			{	
 				index = 0;
-				while(prev_state_array[index] != -1)
+				while (prev_state_array[index] != -1)
 				{
-					if(symtab[prev_state_array[index]].str[str_i] == string[str_i])
+					if (symtab[prev_state_array[index]].str[str_i] == string[str_i])
 					{
 						local_state_array[ref_i] = prev_state_array[index];
 						ref_i++;
@@ -247,22 +267,22 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 					puts("++++++++ Copy other ref");
 				}
 				local_state_array[ref_i] = -1;
-				if(local_count)
+				if (local_count)
 					prev_state_array = local_state_array;
 			}
 		}
 	}
 
-	if(!local_count && is_first_run)
+	if (!local_count && is_first_run)
 	{
 		state_array[0] = -1;
 		return;
 	}
 
-	if(!local_count)
+	if (!local_count)
 	{
 		index = 0;
-		while(prev_state_array[index] != -1)
+		while (prev_state_array[index] != -1)
 		{
 			state_array[index] = prev_state_array[index];
 			iterations++;
@@ -277,7 +297,7 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 	is_first_run = 0;
 	str_i++;
 		
-	if(stack_count < SAFE_STACK)
+	if (stack_count < SAFE_STACK)
 		Sym_Compare(string, state_array, prev_state_array, str_i, is_first_run, symtab, parse_table);
 	else
 	{
@@ -288,8 +308,10 @@ int str_i, int is_first_run, tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_
 	return;
 } 
 
-
-int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
+/*Checks the parse table and symbol table to return a list of
+words that start with the characters entered by the user.*/
+int 
+String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRING][ASCII_TAB_SIZE])
 {		
 	int state_array[SYMTAB_SIZE];
 	
@@ -299,34 +321,31 @@ int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRIN
 	Sym_Compare(string, state_array, NULL, 0, 1, symtab, parse_table);
 	
 	index = 0;
-	while(state_array[index] != -1)
+	while (state_array[index] != -1)
 	{
-		if(state_array[index])
-			match_count++;
+		if (state_array[index]) match_count++;
 		index++;
 	}
 	
-	if(match_count == 0)	
-		printf("HELP\n");
-	else if(match_count == 1)
+	if (!match_count) puts("No matches.");
+	else if (match_count == 1)
 	{
-		printf("One match.\n");
+		puts("One match.");
 		index = 0;
-		while(state_array[index] != -1)
+		while (state_array[index] != -1)
 		{
-			if(state_array[index])
+			if (state_array[index])
 				printf(" - %s\n", symtab[state_array[index]].str);
 			index++;
 		}
 	}
 	else
 	{
-		printf("Ambiguous input. Possible options:\n");
-		printf("match_count: %i\n", match_count);
+		puts("Ambiguous input. Possible options:");
 		index = 0;
-		while(state_array[index] != -1)
+		while (state_array[index] != -1)
 		{	
-			if(state_array[index])
+			if (state_array[index])
 				printf(" - %s\n", symtab[state_array[index]].str);
 			index++;
 		}	
@@ -338,11 +357,12 @@ int String_Compare(char string[STR_SIZE], tab* symtab, arr parse_table[MAX_STRIN
 }
 
 
-int main(int argc, char * argv[])
+int 
+main(int argc, char * argv[])
 {
 	char buf[MAX_STRING];
 
-	if(argv[1] == NULL)
+	if (argv[1] == NULL)
 	{
 		puts("Please enter a string of characters to test the algorithm.\n");
 		exit(0);
@@ -350,15 +370,19 @@ int main(int argc, char * argv[])
 
 	strncpy(buf, argv[1], MAX_STRING);
 
-	tab* symtab;
+	/*A pointer to an array containing all the strings 
+	from the input file.*/
+	tab* symtab = NULL;
 	
+	/*Parse table is a global 2D array which is as long as the longest
+	string and as wide as the lower-case ASCII_TAB_SIZE.*/
 	arr parse_table[MAX_STRING][ASCII_TAB_SIZE];
 
 	symtab = SymTab_Init(parse_table);
 	String_Compare(buf, symtab, parse_table);
 	
-	free(symtab);
+	if (symtab) free(symtab);
 	
-return 0;
+	return 0;
 }
 

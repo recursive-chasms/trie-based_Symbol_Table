@@ -8,11 +8,17 @@
 int main()
 {
 int index = 0;
-char G[25];
-strncpy(G, "consciousness", 25);
-for(index = 0; index < strlen(G); index++)
+int x;
+int y;
+char g[25];
+y = 11;
+x = 3 * y;
+printf("%i\n", x);
+strncpy(g, "hello world", 25);
+printf("%s\n", g);
+for(index = 0; index < strlen(g); index++)
 {
-printf("%c\n", G[index]);
+printf("%c\n", g[index]);
 }
  return 0;
 }

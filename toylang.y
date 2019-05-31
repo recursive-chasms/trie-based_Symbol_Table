@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-//#include "symtab.c"
 #include "include/p_trie.h"
 #include "include/defs.h"
 
@@ -92,7 +91,7 @@ declaration	:
 i_declaration :
 				i_declaration VAR_NAME
 										{
-											if(Get_Type($2.str))
+											if (Get_Type($2.str))
 												printf("ERROR: %s already declared.\n", $2.str);
 											else
 											{
@@ -103,7 +102,7 @@ i_declaration :
 			|			
 				VARI VAR_NAME
 										{
-											if(Get_Type($2.str))
+											if (Get_Type($2.str))
 												printf("ERROR: %s already declared.\n", $2.str);
 											else
 											{
@@ -116,7 +115,7 @@ i_declaration :
 s_declaration :
 				s_declaration VAR_NAME
 										{
-											if(Get_Type($2.str))
+											if (Get_Type($2.str))
 												printf("ERROR: %s already declared.\n", $2.str);
 											else
 											{
@@ -127,7 +126,7 @@ s_declaration :
 			|			
 				VARS VAR_NAME
 										{
-											if(Get_Type($2.str))
+											if (Get_Type($2.str))
 												printf("ERROR: %s already declared.\n", $2.str);
 											else
 											{
@@ -158,9 +157,9 @@ assignment	:
 dec_assign	:
 				VARS VAR_NAME '=' expression 
 										{
-											if(Get_Type($2.str))
+											if (Get_Type($2.str))
 												printf("ERROR: %s already declared.\n", $2.str);
-											else if($4.type == CHAR)
+											else if ($4.type == CHAR)
 											{
 												Add_Symbol($2.str, CHAR);
 												$$.type = CHAR;
@@ -172,9 +171,9 @@ dec_assign	:
 			|			
 				VARI VAR_NAME '=' expression
 										{
-											if(Get_Type($2.str))
+											if (Get_Type($2.str))
 												printf("ERROR: %s already declared.\n", $2.str);
-											else if($4.type == INT)
+											else if ($4.type == INT)
 											{
 												Add_Symbol($2.str, INT);
 												snprintf($$.str, STR_SIZE, "int %s;\n%s = %s;\n", $2.str, $2.str, $4.str);
@@ -188,14 +187,14 @@ dec_assign	:
 assign 		:
 				VAR_NAME '=' expression
 									{
-										if(Get_Type($1.str))
+										if (Get_Type($1.str))
 										{
-											if(Get_Type($1.str) == INT && $3.type == INT)
+											if (Get_Type($1.str) == INT && $3.type == INT)
 											{
 												snprintf($$.str, STR_SIZE, "%s = %s;\n", $1.str, $3.str);
 												$$.type = $3.type;
 											}
-											else if(Get_Type($1.str) == CHAR && $3.type == CHAR)
+											else if (Get_Type($1.str) == CHAR && $3.type == CHAR)
 												snprintf($$.str, STR_SIZE, "strncpy(%s, %s, 25);\n", $1.str, $3.str);
 											else
 												printf("ASSIGNMENT ERROR: var1: %i var2: %i\n", $1.type, $3.type);
@@ -206,14 +205,14 @@ assign 		:
 			|
 				SET VAR_NAME TO expression
 									{
-										if(Get_Type($2.str))
+										if (Get_Type($2.str))
 										{
-											if(Get_Type($2.str) == INT && $4.type == INT)
+											if (Get_Type($2.str) == INT && $4.type == INT)
 											{
 												snprintf($$.str, STR_SIZE, "%s = %s;\n", $2.str, $4.str);
 												$$.type = $4.type;
 											}
-											else if(Get_Type($2.str) == CHAR && $4.type == CHAR)
+											else if (Get_Type($2.str) == CHAR && $4.type == CHAR)
 												snprintf($$.str, STR_SIZE, "strncpy(%s, %s, 25);\n", $1.str, $3.str);
 											else
 												printf("ASSIGNMENT ERROR: var1: %i var2: %i\n", $2.type, $4.type);
@@ -226,7 +225,7 @@ assign 		:
 expression	:
 				expression '+' term
 									{ 
-										if($1.type == INT && $3.type == INT)
+										if ($1.type == INT && $3.type == INT)
 										{
 											snprintf($$.str, STR_SIZE, "%s + %s", $1.str, $3.str);
 											$$.type = INT;
@@ -237,7 +236,7 @@ expression	:
 			|
 				expression '-' term
 									{ 
-										if($1.type == INT && $3.type == INT)
+										if ($1.type == INT && $3.type == INT)
 										{
 											snprintf($$.str, STR_SIZE, "%s - %s", $1.str, $3.str);
 											$$.type = INT;
@@ -262,7 +261,7 @@ expression	:
 term		:
 				term '*' factor
 									{ 
-										if($1.type == INT && $3.type == INT)
+										if ($1.type == INT && $3.type == INT)
 										{
 											snprintf($$.str, STR_SIZE, "%s * %s", $1.str, $3.str);
 											$$.type = INT;
@@ -273,7 +272,7 @@ term		:
 			|
 				term '/' factor
 									{ 
-										if($1.type == INT && $3.type == INT)
+										if ($1.type == INT && $3.type == INT)
 										{
 											snprintf($$.str, STR_SIZE, "%s / %s", $1.str, $3.str);
 											$$.type = INT;
@@ -284,7 +283,7 @@ term		:
 			|
 				term '%' factor
 									{ 
-										if($1.type == INT && $3.type == INT)
+										if ($1.type == INT && $3.type == INT)
 										{
 											snprintf($$.str, STR_SIZE, "%s %% %s", $1.str, $3.str);
 											$$.type = INT;
@@ -323,9 +322,9 @@ factor		:
 print		:
 				PRINTI VAR_NAME
 									{ 
-										if(Get_Type($2.str))
+										if (Get_Type($2.str))
 										{
-											if(Get_Type($2.str) == INT)
+											if (Get_Type($2.str) == INT)
 												snprintf($$.str, STR_SIZE, "printf(\"%%i\\n\", %s);\n", $2.str);
 											else
 												printf("PRINT ERROR: Type mismatch.\n");
@@ -336,9 +335,9 @@ print		:
 			|
 				PRINTSH VAR_NAME
 									{ 
-										if(Get_Type($2.str))
+										if (Get_Type($2.str))
 										{
-											if(Get_Type($2.str) == CHAR)
+											if (Get_Type($2.str) == CHAR)
 												snprintf($$.str, STR_SIZE, "printf(\"%%s\\n\", %s);\n", $2.str);
 											else
 												printf("PRINT ERROR: Type mismatch.\n");
@@ -349,9 +348,9 @@ print		:
 			|
 				PRINTSV VAR_NAME
 									{ 
-										if(Get_Type($2.str))
+										if (Get_Type($2.str))
 										{
-											if(Get_Type($2.str) == CHAR)
+											if (Get_Type($2.str) == CHAR)
 											{
 												snprintf($$.str, STR_SIZE, "for(index = 0; index < strlen(%s); index++)\n{\nprintf(\"%%c\\n\", %s[index]);\n}\n", $2.str, $2.str);
 											}
@@ -374,17 +373,16 @@ newline		:
 
 %%
 
-void main()
+int 
+main()
 {
 	iterations = 0;
 	
 	ParseTab_Init();
 
  	yyparse();
- 	
- 	//printf("ITERATIONS: %i\n", iterations);
- 	
- 	return;
+
+ 	return 0;
 }
 
 
