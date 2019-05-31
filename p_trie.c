@@ -1,14 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-
-#include "include/defs.h"
-
 //PETER ERNEST CARLE
 //Independently-invented trie-based symbol table
 
 /*
+p_trie.c: Main symbol table library
+
 TL;DR: I came up with a trie data structure on my own without knowing that's
 what it was called. It came primarily from my high-level understanding 
 of hash tables and parse tables. I created the structure and source code for 
@@ -23,27 +18,34 @@ a reasonably well-performing symbol table for a compiler.
 
 I integrated it with the Lex and YACC files from a previous Language Processing
 project to test it.
-
 */
 
-//Parse table is a 2D array which is as long as the longest string and as wide as the lower-case ASCII_TAB_SIZE.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
 
-void ParseTab_Init()
+#include "include/defs.h"
+
+/*Initializes everything to zero.*/
+void 
+ParseTab_Init()
 {
 	int index;
 	int tab_i;
 	int str_i;
 	int ref_i;
-
-	//Initializes everything to zero.
-	for(tab_i = 0; tab_i < MAX_STRING; tab_i++)
+	
+	for (tab_i = 0; tab_i < MAX_STRING; tab_i++)
 	{
-		for(str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
+		for (str_i = 0; str_i < ASCII_TAB_SIZE; str_i++)
 		{
+			/*Parse table is a global 2D array which is as long as the longest
+			string and as wide as the lower-case ASCII_TAB_SIZE.*/
 			parse_table[tab_i][str_i].val = 0;
-			for(ref_i = 0; ref_i < MAX_STRING; ref_i++)
+			for (ref_i = 0; ref_i < MAX_STRING; ref_i++)
 				parse_table[tab_i][str_i].type[ref_i] = UNTYPED;
-			for(ref_i = 0; ref_i < MAX_STRING; ref_i++)
+			for (ref_i = 0; ref_i < MAX_STRING; ref_i++)
 				parse_table[tab_i][str_i].ref[ref_i] = -1;
 		}
 	}
@@ -51,7 +53,8 @@ void ParseTab_Init()
 }
 
 /*This adds a variable and its associated type to the parse table/symbol table.*/
-void Add_Symbol(char string[MAX_REF], int type)
+void 
+Add_Symbol(char string[MAX_REF], int type)
 { 
 	int hash = 0;
 	int temp = 0;
@@ -60,9 +63,8 @@ void Add_Symbol(char string[MAX_REF], int type)
 	int len;
 	arr ptr;
 
-	len = strlen(string);//<--A little optimization. Figured I'd save the compiler the trouble.
-
-	for(str_i = 0; str_i < len; str_i++)
+	len = strlen(string);//<--A little optimization.
+	for (str_i = 0; str_i < len; str_i++)
 	{
 		iterations++;
 		/*Each letter of each symtab entry is placed into its corresponding
@@ -71,7 +73,7 @@ void Add_Symbol(char string[MAX_REF], int type)
 		33: I eliminated the first 33 ascii characters from the parse table,
 		since I have no use for control characters here.*/		
 		ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];			
-		//I used a temporary pointer here for optimization and readability.
+		/*I used a temporary pointer here for optimization and readability.*/
 		
 		/*The simple hash is updated with each consecutive character.
 		This hash is used at the last character both to index it
@@ -82,7 +84,7 @@ void Add_Symbol(char string[MAX_REF], int type)
 		parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
 	}
 	ref_i = 0;
-	while(ptr.ref[(hash + ref_i) % MAX_REF] != -1)
+	while (ptr.ref[(hash + ref_i) % MAX_REF] != -1)
 	{/*This loop ideally places the hash at its corresponding index in
 	 the hash list. But if an entry is already there (and it isn't a 
 	 duplicate), the next highest index is checked to see if it's
@@ -94,11 +96,11 @@ void Add_Symbol(char string[MAX_REF], int type)
 		don't have much knowledge of cryptography right now. A single XOR 
 		is about as quick and easy as you can get, methinks. For a toy 
 		demonstration of trie functionality, this should suffice.*/	
-		if(ptr.ref[(hash + ref_i) % MAX_REF] == hash)
+		if (ptr.ref[(hash + ref_i) % MAX_REF] == hash)
 			goto Duplicate;//Just one goto, and it's nearby.
 				
 		ref_i++;
-		if(ref_i == MAX_REF)
+		if (ref_i == MAX_REF)
 		{
 			puts("ERROR: Maximum number of variables at this character terminus.\
 Try using more variables that end on a different character...\
@@ -110,10 +112,9 @@ or variables with a different number of characters.\n");
 	ptr.ref[temp] = hash;
 	ptr.type[temp] = type;
 		
-Duplicate:	//(Just skips the hash input.)
+Duplicate:	/*(Just skips the hash input.)*/
 	
-	if(str_i)	
-		str_i--;//Needed to fix off-by-one error.
+	if (str_i) str_i--;/*Needed to fix off-by-one error.*/
 	parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;				
 		
 	return;
@@ -122,7 +123,8 @@ Duplicate:	//(Just skips the hash input.)
 /*This function performs double duty. It checks to see whether the entry
 exists within the parse table. If the entry does exist, its type is returned.
 Otherwise zero is returned.*/
-int Get_Type(char string[MAX_REF])
+int 
+Get_Type(char string[MAX_REF])
 {
 	int str_i = 0;
 	int ref_i = 0;
@@ -134,7 +136,7 @@ int Get_Type(char string[MAX_REF])
 	iterations++;
 	stack_count++;
 
-	while(string[str_i] != '\0' && string[str_i] != '\n')
+	while (string[str_i] != '\0' && string[str_i] != '\n')
 	{
 	/*The corresponding location within the parse table of each 
 	consecutive character in the input string is checked. If that character
@@ -153,24 +155,17 @@ int Get_Type(char string[MAX_REF])
 		temp = 0;
 		iterations++;
 		
-	/*The declaration within the if-statement below was intentional. 
-	(I probably wouldn't do this in production code. Too suspicious-looking.)
-	What it really checks is whether there is a positive non-zero value
-	at the referenced position in the parse table. Temp assignment
-	would be happening anyway. Just trying it out for size.*/
-		if(temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val)
-			str_i++;
-		else
-			return 0;
+		temp = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET].val
+		if (temp) str_i++;
+		else return 0;
 			
 		hash = temp ^ hash;
 	}
-	if(!str_i)
-		return 0;
+	if (!str_i) return 0;
 	
 	str_i--;
 	ref_i = 0;
-	while(ref_i < MAX_REF)
+	while (ref_i < MAX_REF)
 	{/*In most cases, the hash should be located at its corresponding index.
 	But if it isn't, each consecutive entry in the hash reference list should
 	be checked until it's found. If the entry isn't found anywhere in the list,
@@ -179,7 +174,7 @@ int Get_Type(char string[MAX_REF])
 		iterations++;
 		ptr = parse_table[str_i][(int)string[str_i] - CHAR_OFFSET];
 		temp = (hash + ref_i) % MAX_REF;
-		if(ptr.ref[temp] == hash)
+		if (ptr.ref[temp] == hash)
 			return ptr.type[temp];
 		ref_i++;
 		parse_table[str_i][(int)string[str_i] - CHAR_OFFSET] = ptr;
