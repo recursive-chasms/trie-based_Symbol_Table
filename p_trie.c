@@ -67,7 +67,7 @@ Add_Symbol(char string[MAX_REF], int type)
 	for (str_i = 0; str_i < len; str_i++)
 	{
 		iterations++;
-		/*Each letter of each symtab entry is placed into its corresponding
+		/*Each letter of the input string is placed into its corresponding
 		location in the parse table. The index of this location is determined by 
 		the value of the character being cast into an integer and subtracted by 
 		33: I eliminated the first 33 ascii characters from the parse table,
